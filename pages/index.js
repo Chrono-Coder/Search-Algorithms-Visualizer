@@ -1,97 +1,304 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import styles from '../styles/Home.module.css'
-// import Graph from '../utls/graph'
-import { useEffect } from 'react'
-class Graph {
-	#vertices = new Set();
-	#adjacentList = new Map();
+import { useEffect, useState } from 'react'
+import { selectAll, select } from 'd3'
 
-	get vertices() {
-		return Array.from(this.#vertices)
-	}
-	constructor() {
-
-	}
-
-	get adjacentList() {
-		const list = {};
-
-		this.#adjacentList.forEach((val, key) => {
-			list[key] = Array.from(val)
-		})
-
-		return list
-	}
-
-	addVertex(vertex = null) {
-		if (
-			!this.#vertices.has(vertex) &&
-			vertex !== null &&
-			vertex !== undefined
-		) {
-			this.#vertices.add(vertex);
-			this.#adjacentList.set(vertex, new Set());
-		}
-	}
-
-	addEdge(vertex1 = null, vertex2 = null, directed = true) {
-		if (
-			vertex1 !== null && vertex1 !== undefined &&
-			vertex2 !== null && vertex2 !== undefined &&
-			vertex1 != vertex2
-		) {
-			this.addVertex(vertex1);
-			this.addVertex(vertex2);
-			this.#adjacentList.get(vertex1).add(vertex2);
-			if (directed) {
-				this.#adjacentList.get(vertex2).add(vertex1);
-			}
-		}
-	}
-
-
-}
 export default function Home() {
-
-	function aStarSearch(graph, start, goal) {
-		paths = [start]
-		let found = false
-		while (paths.length != 0 && !found) {
-			if (start[0] != goal) {
-				paths.remove(start)
-				paths.push()
-			}
-			else {
-
-			}
-		}
-	}
+	const [start, setStart] = useState(-1)
+	const [goal, setGoal] = useState(-1)
+	const [mouseDown, setMouseDown] = useState(false)
+	const [buildMode, setBuildMode] = useState(false)
+	const [path, setPath] = useState([])
+	const [exploredPath, setExploredPath] = useState([])
+	const [pathMode, setPathMode] = useState(true)
+	const delay = async (ms = 1000) =>
+		new Promise(resolve => setTimeout(resolve, ms))
+	const numCells = 1500
+	const numCols = 60
 
 	useEffect(() => {
-		let x = new Graph()
-		x.addVertex("Ar")
-		x.addVertex("Si")
-		x.addVertex("To")
-		x.addVertex("Me")
-		x.addEdge("Ar", "Si", true)
-		x.addEdge("Ar", "To", true)
-		x.addEdge("Si", "To", true)
-		x.addEdge("Me", "To", true)
-		console.log(x.vertices)
-	}, [])
-	function displayGraph(graph) {
-		graph.vertices.map(vertex => {
-			return <div></div>
+		// if (pathMode) {
+		// 	const cells = document.querySelectorAll("[data-cell]")
+		// 	cells.forEach(cell => {
+		// 		cell.classList.remove('exploredpath')
+		// 		cell.classList.remove('subpath')
+		// 	})
+		// 	path.forEach(p => {
+		// 		document.getElementById(p).classList.add("subpath")
+		// 	});	
+
+		// }
+
+		// else {
+		// 	const cells = document.querySelectorAll("[data-cell]")
+		// 	cells.forEach(cell => {
+		// 		cell.classList.remove('exploredpath')
+		// 		cell.classList.remove('subpath')
+		// 	})
+		// 	exploredPath.forEach(p => {
+		// 		document.getElementById(p).classList.add("exploredpath")
+		// 	});		
+
+		// }
+	}, [pathMode])
+
+	function aStarSearch(e) {
+		e.preventDefault()
+		path.forEach(cell => {
+			let c = document.getElementById(cell)
+			c.classList.remove('subpath')
+			c.classList.remove('exploredpath')
 		})
+		let visited = []
+		let paths = [
+			{
+				path: [start],
+				cost: getDistCellID(start, goal),
+				index: 0
+			}
+		]
+		if (start != -1 && goal != -1) {
+			let found = false
+			while (!found && paths.length != 0) {
+				let curPath = getMinCost(paths)
+				let curNode = (curPath.path[curPath.path.length - 1])
+				paths = paths.slice(0, curPath.index).concat(paths.slice(curPath.index + 1))
+				if (curNode != goal && !visited.includes(curNode)) {
+
+					let up = curNode - numCols
+					let down = curNode + numCols
+					let left = curNode - 1
+					let right = curNode + 1
+					let upRight = curNode - numCols + 1
+					let upLeft = curNode - numCols - 1
+					let downRight = curNode + numCols + 1
+					let downLeft = curNode + numCols - 1
+
+					const appendPaths = (ID) => {
+						if (ID > 0 && ID < numCells && !document.getElementById(ID).classList.contains("blocker") && !visited.includes(ID)) {
+							paths.push({ path: curPath.path.concat([ID]), cost: getDistCellID(ID, goal) })
+						}
+					}
+
+					appendPaths(up)
+					appendPaths(down)
+					appendPaths(left)
+					appendPaths(right)
+					// appendPaths(upRight)
+					// appendPaths(upLeft)
+					// appendPaths(downRight)
+					// appendPaths(downLeft)
+
+					// paths.forEach(({ path }) => {
+					// 	path.forEach(cell => {
+					// 		exploredPath.push(cell)
+					// 		document.getElementById(cell).classList.add("exploredpath")
+
+					// 	});
+
+					// });
+					visited.push(curNode)
+					// setExploredPath(curPath.path)
+				}
+				else if (visited.includes(curNode)) {
+
+				}
+				else {
+					found = true
+					setPath(curPath.path)
+				}
+
+			}
+		}
+	}
+	async function animatePath() {
+		let cell = 0
+		for (let i = 0; i < path.length; i++) {
+			cell = path[i]
+			document.getElementById(cell).classList.add("subpath")
+			await delay(100)
+
+		}
+
+		// let count = 0
+		// selectAll("svg").remove()
+		// selectAll(".subpath").append("svg").attr("id", `cell-${count++}`)
+
+
+	}
+	useEffect(() => {
+		animatePath()
+	}, [path])
+
+	function getMinCost(paths) {
+		let minPath = paths[0].path
+		let minCost = paths[0].cost
+		let index = 0
+		let count = 0
+
+		paths.forEach(subPath => {
+
+			if (subPath.cost < minCost) {
+				minCost = subPath.cost
+				minPath = subPath.path
+				index = count
+			}
+			count++
+		});
+
+		return {
+			path: minPath,
+			cost: minCost,
+			index: index
+		}
+	}
+
+	function getDist(x1, x2, y1, y2) {
+		return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2))
+	}
+	function getDistCellID(cell1, cell2) {
+		// console.log("cell1")
+		// console.log(cell1)
+		// console.log("cell2")
+		// console.log(cell2)
+
+		let pos1 = {
+			x: document.getElementById(cell1).getAttribute("x"),
+			y: document.getElementById(cell1).getAttribute("y")
+		}
+		let pos2 = {
+			x: document.getElementById(cell2).getAttribute("x"),
+			y: document.getElementById(cell2).getAttribute("y")
+		}
+
+		return Math.sqrt(Math.pow(pos1.x - pos2.x, 2) + Math.pow(pos1.y - pos2.y, 2))
+	}
+
+
+	function handleCellClick(e) {
+		e.preventDefault()
+		const cell = e.target
+		if (!buildMode) {
+			if (start == -1) {
+				cell.classList.add("start")
+				setStart(+cell.getAttribute("id"))
+			}
+			else if (goal == -1) {
+				cell.classList.add("goal")
+				setGoal(+cell.getAttribute("id"))
+				let checkbox = document.getElementById("buildmode")
+				checkbox.click()
+			}
+			else {
+				cell.classList.remove("blocker")
+			}
+		}
+		else {
+			cell.classList.remove("subpath")
+			cell.classList.add("blocker")
+		}
+
+	}
+
+	function handleCellDrag(e) {
+		e.preventDefault()
+		const cell = e.target
+		if (mouseDown) {
+
+			if (buildMode) {
+				cell.classList.remove("subpath")
+
+				cell.classList.add("blocker")
+			}
+			else {
+				cell.classList.remove("blocker")
+			}
+		}
+
+
+	}
+
+	function generateGrid(size) {
+		let count = 0
+		let divs = []
+
+		let yIndex = 0
+		while (count != size) {
+
+			count % 60 == 0 ? yIndex++ : yIndex
+			let pos = {
+				x: count % 60,
+				y: yIndex
+			}
+			divs.push(<div key={count} id={count} x={pos.x} y={pos.y - 1} className="cell flex justify-center items-center relative w-[30px] h-[30px] border border-black" data-cell onMouseEnter={handleCellDrag} onMouseDown={handleCellClick} ></div >)
+			count += 1
+
+		}
+		return (<>
+			{divs.map(d => d)}
+		</>)
+	}
+
+	function toggleBuildMode() {
+		buildMode ? setBuildMode(false) : setBuildMode(true)
+	}
+
+	function togglePathMode(e) {
+		e.preventDefault()
+		pathMode ? setPathMode(false) : setPathMode(true)
+	}
+
+	function clearGrid(e) {
+		e.preventDefault()
+		const cells = document.querySelectorAll("[data-cell]")
+		cells.forEach(cell => {
+			cell.classList.remove('goal')
+			cell.classList.remove('start')
+			cell.classList.remove('blocker')
+			cell.classList.remove('subpath')
+			cell.classList.remove('exploredpath')
+			// selectAll(".cell").style('background-color', 'white')
+		})
+		setStart(-1)
+		setGoal(-1)
+		setPath([])
+		let checkbox = document.getElementById("buildmode")
+		checkbox.click()
+		toggleBuildMode()
+
 	}
 	return (
-		<div className={styles.container}>
-			<Head>
-				<title>Create Next App</title>
-				<meta name="description" content="Generated by create next app" />
-				<link rel="icon" href="/favicon.ico" />
-			</Head>
+		<div className="flex-col flex">
+			<div>
+				<Head>
+					<title>A Star Algorithm</title>
+					{/* <meta name="description" /> */}
+				</Head>
+				{/* <input>Build Mode</input> */}
+				<nav className="flex p-5 justify-items-start items-center bg-black h-24 w-screen">
+					<button className="h-[50%] border border-slate-50 rounded ml-3 pl-2 pr-2 text-white hover:underline" onClick={aStarSearch}>Begin</button>
+					<button className="h-[50%] border border-slate-50 rounded ml-3 pl-2 pr-2 text-white hover:underline" onClick={clearGrid}>Clear</button>
+					<button className="h-[50%] border border-slate-50 rounded ml-3 pl-2 pr-2 text-white hover:underline" onClick={togglePathMode}>{pathMode ? "Paths Mode" : "Explored Mode"}</button>
+					<label type="checkbox" className="h-[50%] text-white m-3 " htmlFor="buildmode">Build Mode</label>
+					<input id="buildmode" type="checkbox" className="h-[50%]" onClick={() => toggleBuildMode()}></input>
+					<div>
+						<h1 className="h-[50%] ml-3 pl-2 pr-2 text-white">Start: {start}</h1>
+						<h1 className="h-[50%] ml-3 pl-2 pr-2  text-white">Goal: {goal}</h1>
+					</div>
+					<h1 className="h-[50%] ml-3 pl-2 text-white">Path:</h1>
+					<ul className="h-[50%] w-80 ml-3 pl-2 pr-2 flex gap-2 text-white">
+						{path.map(cell => {
+							return <li key={cell}>{cell},</li>
+						})}
+					</ul>
+				</nav>
+				<div className="board grid w-screen h-screen justify-center content-center items-center grid-cols-tic-tac m-0 p-0" onMouseDown={() => setMouseDown(true)} onMouseUp={() => setMouseDown(false)} id="board">
+					{generateGrid(numCells)}
+
+				</div>
+
+			</div>
 
 
 		</div>
