@@ -14,6 +14,7 @@ export default function Home() {
 	const [pathMode, setPathMode] = useState(true)
 	const [finalCost, setCost] = useState(0)
 	const [hueristicMode, setHueristicMode] = useState(0)
+	// const [deleting, setDeleting] = useState(false)
 
 	const delay = async (ms = 1000) =>
 		new Promise(resolve => setTimeout(resolve, ms))
@@ -27,10 +28,9 @@ export default function Home() {
 				cell.classList.remove('exploredpath')
 				cell.classList.remove('subpath')
 			})
-			path.forEach(p => {
-				document.getElementById(p).classList.add("subpath")
+			exploredPath.forEach(p => {
+				document.getElementById(p).classList.add("exploredpath")
 			});
-
 		}
 
 		else {
@@ -39,8 +39,8 @@ export default function Home() {
 				cell.classList.remove('exploredpath')
 				cell.classList.remove('subpath')
 			})
-			exploredPath.forEach(p => {
-				document.getElementById(p).classList.add("exploredpath")
+			path.forEach(p => {
+				document.getElementById(p).classList.add("subpath")
 			});
 
 		}
@@ -113,14 +113,17 @@ export default function Home() {
 							explored.push(cell)
 						});
 					});
-					setExploredPath(explored)
+					setExploredPath(explored.reverse())
 
 				}
 
 			}
 		}
+		animatePath()
 	}
 	async function animatePath() {
+		selectAll(".subpath").classed("subpath", false)
+		selectAll(".exploredpath").classed("exploredpath", false)
 		let cell = 0
 		if (pathMode) {
 			for (let i = 0; i < path.length; i++) {
@@ -135,22 +138,17 @@ export default function Home() {
 			for (let i = 0; i < exploredPath.length; i++) {
 				cell = exploredPath[i]
 				document.getElementById(cell).classList.add("exploredpath")
-				await delay(1)
+				await delay(10)
 
 			}
 		}
 
-		// let count = 0
-		// selectAll("svg").remove()
-		// selectAll(".subpath").append("svg").attr("id", `cell-${count++}`)
-
-
 	}
 
-	useEffect(() => {
-		if (path.length != 0)
-			animatePath()
-	}, [path])
+	// useEffect(() => {
+	// 	if (path.length != 0)
+			
+	// }, [path])
 
 	function getMinCost(paths) {
 		let minPath = paths[0].path
@@ -175,53 +173,53 @@ export default function Home() {
 		}
 	}
 
-	// function getDist(x1, x2, y1, y2) {
-	// 	return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2))
-	// }
 
 	function getDistCellID(cell1, cell2) {
 		let pos1 = {
 			x: document.getElementById(cell1).getAttribute("x"),
 			y: document.getElementById(cell1).getAttribute("y")
 		}
+
 		let pos2 = {
 			x: document.getElementById(cell2).getAttribute("x"),
 			y: document.getElementById(cell2).getAttribute("y")
 		}
+
 		if (hueristicMode == 0) {
 
 			return Math.sqrt(Math.pow(pos1.x - pos2.x, 2) + Math.pow(pos1.y - pos2.y, 2))
 		}
+
 		else {
 			return Math.abs(pos1.x - pos2.x) + Math.abs(pos1.y - pos2.y)
 		}
-
-
-
 
 	}
 
 	function handleCellClick(e) {
 		e.preventDefault()
 		const cell = e.target
-		// if (!buildMode) {
-		if (!cell.classList.contains("start") && start == -1) {
+		if (!cell.classList.contains("start") && !cell.classList.contains("goal") && start == -1) {
 			cell.classList.add("start")
 			setStart(+cell.getAttribute("id"))
 		}
-		else if (!cell.classList.contains("goal") && goal == -1) {
+
+		else if (!cell.classList.contains("goal") && !cell.classList.contains("start") && goal == -1) {
 			cell.classList.add("goal")
 			setGoal(+cell.getAttribute("id"))
-			let checkbox = document.getElementById("buildmode")
-			checkbox.click()
+			
 		}
+
 		else if (cell.classList.contains("blocker")) {
 			cell.classList.remove("blocker")
 			cell.classList.remove("subpath")
 		}
-		else if (!cell.classList.contains("blocker")) {
+
+		else if (!cell.classList.contains("blocker") && !cell.classList.contains("start") && !cell.classList.contains("goal")) {
 			cell.classList.add("blocker")
 			cell.classList.remove("subpath")
+			cell.classList.remove("exploredpath")
+
 		}
 
 		// cell.classList.remove("subpath")
@@ -232,14 +230,29 @@ export default function Home() {
 	function handleCellDrag(e) {
 		e.preventDefault()
 		const cell = e.target
-		if (mouseDown) {
 
-			if (!cell.classList.contains("goal") && !cell.classList.contains("start")) {
+		if (mouseDown && buildMode) {
+			if (!cell.classList.contains("goal") && !cell.classList.contains("start") && !cell.classList.contains("blocker") ) {
 				cell.classList.remove("subpath")
 				cell.classList.add("blocker")
+				setBuildMode(true)
 			}
-			else if (cell.classList.contains("blocker")) {
+			else {
 				cell.classList.remove("blocker")
+				// setBuildMode(false)
+			}
+			// setMouseDown(false)
+		}
+
+		else if (mouseDown && !buildMode){
+			if (!cell.classList.contains("goal") && !cell.classList.contains("start") && !cell.classList.contains("blocker") ) {
+				cell.classList.remove("subpath")
+				cell.classList.add("blocker")
+				// setBuildMode(true)
+			}
+			else {
+				cell.classList.remove("blocker")
+				// setBuildMode(false)
 			}
 		}
 
@@ -262,6 +275,7 @@ export default function Home() {
 			count += 1
 
 		}
+
 		return (<>
 			{divs.map(d => d)}
 		</>)
@@ -291,16 +305,16 @@ export default function Home() {
 		setStart(-1)
 		setGoal(-1)
 		setPath([])
-		let checkbox = document.getElementById("buildmode")
-		checkbox.click()
 		toggleBuildMode()
 
 	}
+	
 	function toggleHueristic(e) {
 		e.preventDefault()
 		hueristicMode == 0 ? setHueristicMode(1) : setHueristicMode(0)
 		// aStarSearch(e)
 	}
+
 	return (
 		<div className="flex-col flex">
 			<div>
