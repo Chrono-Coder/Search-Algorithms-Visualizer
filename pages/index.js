@@ -12,35 +12,38 @@ export default function Home() {
 	const [path, setPath] = useState([])
 	const [exploredPath, setExploredPath] = useState([])
 	const [pathMode, setPathMode] = useState(true)
+	const [finalCost, setCost] = useState(0)
+	const [hueristicMode, setHueristicMode] = useState(0)
+
 	const delay = async (ms = 1000) =>
 		new Promise(resolve => setTimeout(resolve, ms))
 	const numCells = 1500
 	const numCols = 60
 
 	useEffect(() => {
-		// if (pathMode) {
-		// 	const cells = document.querySelectorAll("[data-cell]")
-		// 	cells.forEach(cell => {
-		// 		cell.classList.remove('exploredpath')
-		// 		cell.classList.remove('subpath')
-		// 	})
-		// 	path.forEach(p => {
-		// 		document.getElementById(p).classList.add("subpath")
-		// 	});	
+		if (!pathMode) {
+			const cells = document.querySelectorAll("[data-cell]")
+			cells.forEach(cell => {
+				cell.classList.remove('exploredpath')
+				cell.classList.remove('subpath')
+			})
+			path.forEach(p => {
+				document.getElementById(p).classList.add("subpath")
+			});
 
-		// }
+		}
 
-		// else {
-		// 	const cells = document.querySelectorAll("[data-cell]")
-		// 	cells.forEach(cell => {
-		// 		cell.classList.remove('exploredpath')
-		// 		cell.classList.remove('subpath')
-		// 	})
-		// 	exploredPath.forEach(p => {
-		// 		document.getElementById(p).classList.add("exploredpath")
-		// 	});		
+		else {
+			const cells = document.querySelectorAll("[data-cell]")
+			cells.forEach(cell => {
+				cell.classList.remove('exploredpath')
+				cell.classList.remove('subpath')
+			})
+			exploredPath.forEach(p => {
+				document.getElementById(p).classList.add("exploredpath")
+			});
 
-		// }
+		}
 	}, [pathMode])
 
 	function aStarSearch(e) {
@@ -51,6 +54,7 @@ export default function Home() {
 			c.classList.remove('exploredpath')
 		})
 		let visited = []
+		let explored = []
 		let paths = [
 			{
 				path: [start],
@@ -65,6 +69,7 @@ export default function Home() {
 				let curNode = (curPath.path[curPath.path.length - 1])
 				paths = paths.slice(0, curPath.index).concat(paths.slice(curPath.index + 1))
 				if (curNode != goal && !visited.includes(curNode)) {
+					explored.push(curNode)
 
 					let up = curNode - numCols
 					let down = curNode + numCols
@@ -85,21 +90,16 @@ export default function Home() {
 					appendPaths(down)
 					appendPaths(left)
 					appendPaths(right)
-					// appendPaths(upRight)
-					// appendPaths(upLeft)
-					// appendPaths(downRight)
-					// appendPaths(downLeft)
+					if (hueristicMode == 0) {
+						appendPaths(upRight)
+						appendPaths(upLeft)
+						appendPaths(downRight)
+						appendPaths(downLeft)
+					}
 
-					// paths.forEach(({ path }) => {
-					// 	path.forEach(cell => {
-					// 		exploredPath.push(cell)
-					// 		document.getElementById(cell).classList.add("exploredpath")
 
-					// 	});
 
-					// });
 					visited.push(curNode)
-					// setExploredPath(curPath.path)
 				}
 				else if (visited.includes(curNode)) {
 
@@ -107,6 +107,14 @@ export default function Home() {
 				else {
 					found = true
 					setPath(curPath.path)
+					setCost(curPath.path.length)
+					paths.forEach(({ path }) => {
+						path.forEach(cell => {
+							explored.push(cell)
+						});
+					});
+					setExploredPath(explored)
+
 				}
 
 			}
@@ -114,11 +122,22 @@ export default function Home() {
 	}
 	async function animatePath() {
 		let cell = 0
-		for (let i = 0; i < path.length; i++) {
-			cell = path[i]
-			document.getElementById(cell).classList.add("subpath")
-			await delay(100)
+		if (pathMode) {
+			for (let i = 0; i < path.length; i++) {
+				cell = path[i]
+				document.getElementById(cell).classList.add("subpath")
+				await delay(100)
 
+			}
+
+		}
+		else {
+			for (let i = 0; i < exploredPath.length; i++) {
+				cell = exploredPath[i]
+				document.getElementById(cell).classList.add("exploredpath")
+				await delay(1)
+
+			}
 		}
 
 		// let count = 0
@@ -127,8 +146,10 @@ export default function Home() {
 
 
 	}
+
 	useEffect(() => {
-		animatePath()
+		if (path.length != 0)
+			animatePath()
 	}, [path])
 
 	function getMinCost(paths) {
@@ -154,15 +175,11 @@ export default function Home() {
 		}
 	}
 
-	function getDist(x1, x2, y1, y2) {
-		return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2))
-	}
-	function getDistCellID(cell1, cell2) {
-		// console.log("cell1")
-		// console.log(cell1)
-		// console.log("cell2")
-		// console.log(cell2)
+	// function getDist(x1, x2, y1, y2) {
+	// 	return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2))
+	// }
 
+	function getDistCellID(cell1, cell2) {
 		let pos1 = {
 			x: document.getElementById(cell1).getAttribute("x"),
 			y: document.getElementById(cell1).getAttribute("y")
@@ -171,33 +188,44 @@ export default function Home() {
 			x: document.getElementById(cell2).getAttribute("x"),
 			y: document.getElementById(cell2).getAttribute("y")
 		}
+		if (hueristicMode == 0) {
 
-		return Math.sqrt(Math.pow(pos1.x - pos2.x, 2) + Math.pow(pos1.y - pos2.y, 2))
+			return Math.sqrt(Math.pow(pos1.x - pos2.x, 2) + Math.pow(pos1.y - pos2.y, 2))
+		}
+		else {
+			return Math.abs(pos1.x - pos2.x) + Math.abs(pos1.y - pos2.y)
+		}
+
+
+
+
 	}
-
 
 	function handleCellClick(e) {
 		e.preventDefault()
 		const cell = e.target
-		if (!buildMode) {
-			if (start == -1) {
-				cell.classList.add("start")
-				setStart(+cell.getAttribute("id"))
-			}
-			else if (goal == -1) {
-				cell.classList.add("goal")
-				setGoal(+cell.getAttribute("id"))
-				let checkbox = document.getElementById("buildmode")
-				checkbox.click()
-			}
-			else {
-				cell.classList.remove("blocker")
-			}
+		// if (!buildMode) {
+		if (!cell.classList.contains("start") && start == -1) {
+			cell.classList.add("start")
+			setStart(+cell.getAttribute("id"))
 		}
-		else {
+		else if (!cell.classList.contains("goal") && goal == -1) {
+			cell.classList.add("goal")
+			setGoal(+cell.getAttribute("id"))
+			let checkbox = document.getElementById("buildmode")
+			checkbox.click()
+		}
+		else if (cell.classList.contains("blocker")) {
+			cell.classList.remove("blocker")
 			cell.classList.remove("subpath")
-			cell.classList.add("blocker")
 		}
+		else if (!cell.classList.contains("blocker")) {
+			cell.classList.add("blocker")
+			cell.classList.remove("subpath")
+		}
+
+		// cell.classList.remove("subpath")
+		// cell.classList.add("blocker")
 
 	}
 
@@ -206,12 +234,11 @@ export default function Home() {
 		const cell = e.target
 		if (mouseDown) {
 
-			if (buildMode) {
+			if (!cell.classList.contains("goal") && !cell.classList.contains("start")) {
 				cell.classList.remove("subpath")
-
 				cell.classList.add("blocker")
 			}
-			else {
+			else if (cell.classList.contains("blocker")) {
 				cell.classList.remove("blocker")
 			}
 		}
@@ -231,7 +258,7 @@ export default function Home() {
 				x: count % 60,
 				y: yIndex
 			}
-			divs.push(<div key={count} id={count} x={pos.x} y={pos.y - 1} className="cell flex justify-center items-center relative w-[30px] h-[30px] border border-black" data-cell onMouseEnter={handleCellDrag} onMouseDown={handleCellClick} ></div >)
+			divs.push(<div key={count} id={count} x={pos.x} y={pos.y - 1} className="cell flex justify-center items-center relative w-[30px] h-[30px] border-[0.1px] border-black" data-cell onMouseEnter={handleCellDrag} onMouseDown={handleCellClick} ></div >)
 			count += 1
 
 		}
@@ -247,6 +274,7 @@ export default function Home() {
 	function togglePathMode(e) {
 		e.preventDefault()
 		pathMode ? setPathMode(false) : setPathMode(true)
+		// animatePath()
 	}
 
 	function clearGrid(e) {
@@ -268,6 +296,11 @@ export default function Home() {
 		toggleBuildMode()
 
 	}
+	function toggleHueristic(e) {
+		e.preventDefault()
+		hueristicMode == 0 ? setHueristicMode(1) : setHueristicMode(0)
+		// aStarSearch(e)
+	}
 	return (
 		<div className="flex-col flex">
 			<div>
@@ -280,18 +313,19 @@ export default function Home() {
 					<button className="h-[50%] border border-slate-50 rounded ml-3 pl-2 pr-2 text-white hover:underline" onClick={aStarSearch}>Begin</button>
 					<button className="h-[50%] border border-slate-50 rounded ml-3 pl-2 pr-2 text-white hover:underline" onClick={clearGrid}>Clear</button>
 					<button className="h-[50%] border border-slate-50 rounded ml-3 pl-2 pr-2 text-white hover:underline" onClick={togglePathMode}>{pathMode ? "Paths Mode" : "Explored Mode"}</button>
-					<label type="checkbox" className="h-[50%] text-white m-3 " htmlFor="buildmode">Build Mode</label>
-					<input id="buildmode" type="checkbox" className="h-[50%]" onClick={() => toggleBuildMode()}></input>
+					<button className="h-[50%] border border-slate-50 rounded ml-3 pl-2 pr-2 text-white hover:underline" onClick={toggleHueristic}>{hueristicMode == 0 ? "Euclidean" : "Manhattan"}</button>
+					{/* <label type="checkbox" className="h-[50%] text-white m-3 " htmlFor="buildmode">Build Mode</label> */}
+					{/* <input id="buildmode" type="checkbox" className="h-[50%]" onClick={() => toggleBuildMode()}></input> */}
 					<div>
 						<h1 className="h-[50%] ml-3 pl-2 pr-2 text-white">Start: {start}</h1>
 						<h1 className="h-[50%] ml-3 pl-2 pr-2  text-white">Goal: {goal}</h1>
 					</div>
-					<h1 className="h-[50%] ml-3 pl-2 text-white">Path:</h1>
-					<ul className="h-[50%] w-80 ml-3 pl-2 pr-2 flex gap-2 text-white">
+					<h1 className="h-[50%] ml-3 pl-2 text-white">Cost: {finalCost}</h1>
+					{/* <ul className="h-[50%] w-80 ml-3 pl-2 pr-2 flex gap-2 text-white">
 						{path.map(cell => {
 							return <li key={cell}>{cell},</li>
 						})}
-					</ul>
+					</ul> */}
 				</nav>
 				<div className="board grid w-screen h-screen justify-center content-center items-center grid-cols-tic-tac m-0 p-0" onMouseDown={() => setMouseDown(true)} onMouseUp={() => setMouseDown(false)} id="board">
 					{generateGrid(numCells)}

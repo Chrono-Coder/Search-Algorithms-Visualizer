@@ -26,6 +26,8 @@
 
   .cell.exploredpath:not(.start):not(.goal) {
     background-color: #370c9c;
+    transition: ease-in-out 300ms;
+
   }
   .cell.blocker {
     background-color: #000000;
