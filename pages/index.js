@@ -13,13 +13,17 @@ export default function Home() {
 	const [exploredPath, setExploredPath] = useState([])
 	const [pathMode, setPathMode] = useState(true)
 	const [finalCost, setCost] = useState(0)
+
 	const [hueristicMode, setHueristicMode] = useState(0)
+	const [isLoaded, setLoaded] = useState(false)
+	const [numCols, setNumCols] = useState(0)
+	const [numRows, setNumRows] = useState(0)
+
 	// const [deleting, setDeleting] = useState(false)
 
 	const delay = async (ms = 1000) =>
 		new Promise(resolve => setTimeout(resolve, ms))
-	const numCells = 1500
-	const numCols = 60
+
 
 	useEffect(() => {
 		if (!pathMode) {
@@ -47,12 +51,13 @@ export default function Home() {
 	}, [pathMode])
 
 	function aStarSearch(e) {
-		e.preventDefault()
-		path.forEach(cell => {
-			let c = document.getElementById(cell)
-			c.classList.remove('subpath')
-			c.classList.remove('exploredpath')
-		})
+		// e.preventDefault()
+		// path.forEach(cell => {
+		// 	let c = document.getElementById(cell)
+		// 	c.classList.remove('subpath')
+		// 	c.classList.remove('exploredpath')
+		// })
+		let numCells = numCols * numRows
 		let visited = []
 		let explored = []
 		let paths = [
@@ -62,14 +67,18 @@ export default function Home() {
 				index: 0
 			}
 		]
+
 		if (start != -1 && goal != -1) {
 			let found = false
 			while (!found && paths.length != 0) {
 				let curPath = getMinCost(paths)
 				let curNode = (curPath.path[curPath.path.length - 1])
 				paths = paths.slice(0, curPath.index).concat(paths.slice(curPath.index + 1))
+				// curPath.path.forEach(cell => {
+				// 	explored.push(cell)
+				// });
 				if (curNode != goal && !visited.includes(curNode)) {
-					explored.push(curNode)
+					// explored.push(curNode)
 
 					let up = curNode - numCols
 					let down = curNode + numCols
@@ -83,6 +92,9 @@ export default function Home() {
 					const appendPaths = (ID) => {
 						if (ID > 0 && ID < numCells && !document.getElementById(ID).classList.contains("blocker") && !visited.includes(ID)) {
 							paths.push({ path: curPath.path.concat([ID]), cost: getDistCellID(ID, goal) })
+							// curPath.path.forEach(cell => {
+							// 	explored.push(cell)
+							// });
 						}
 					}
 
@@ -97,11 +109,10 @@ export default function Home() {
 						appendPaths(downLeft)
 					}
 
-
-
 					visited.push(curNode)
 				}
-				else if (visited.includes(curNode)) {
+
+				else if (visited.includes(curNode) && curNode != goal) {
 
 				}
 				else {
@@ -113,42 +124,84 @@ export default function Home() {
 							explored.push(cell)
 						});
 					});
-					setExploredPath(explored.reverse())
+					setExploredPath(explored)
 
 				}
 
 			}
 		}
-		animatePath()
+
 	}
+	useEffect(() => {
+		animatePath2()
+	}, [finalCost, path, exploredPath])
+
 	async function animatePath() {
 		selectAll(".subpath").classed("subpath", false)
 		selectAll(".exploredpath").classed("exploredpath", false)
 		let cell = 0
 		if (pathMode) {
+			let visited = []
 			for (let i = 0; i < path.length; i++) {
 				cell = path[i]
-				document.getElementById(cell).classList.add("subpath")
-				await delay(100)
+				cell = exploredPath[i]
+				if (!visited.includes(cell)) {
+					document.getElementById(cell).classList.add("subpath")
+					await delay(100)
+					visited.push(cell)
+
+				}
 
 			}
 
 		}
 		else {
+			let visited = []
 			for (let i = 0; i < exploredPath.length; i++) {
 				cell = exploredPath[i]
-				document.getElementById(cell).classList.add("exploredpath")
-				await delay(10)
+				if (!visited.includes(cell)) {
+					document.getElementById(cell).classList.add("exploredpath")
+					await delay(10)
+					visited.push(cell)
+				}
 
 			}
 		}
 
 	}
 
-	// useEffect(() => {
-	// 	if (path.length != 0)
-			
-	// }, [path])
+	async function animatePath2() {
+		selectAll(".subpath").classed("subpath", false)
+		selectAll(".exploredpath").classed("exploredpath", false)
+		let cell = 0
+		let visited = []
+		for (let i = 0; i < exploredPath.length; i++) {
+			cell = exploredPath[i]
+			if (!visited.includes(cell)) {
+				if (path.includes(cell)) {
+					document.getElementById(cell).classList.add("subpath")
+				}
+				else {
+					document.getElementById(cell).classList.add("exploredpath")
+				}
+				visited.push(cell)
+				await delay(20)
+			}
+
+		}
+	}
+
+
+	useEffect(() => {
+		if (typeof document != 'undefined' && !isLoaded) {
+			setNumRows(Math.floor(window.innerHeight / 40) + 1)
+			setNumCols(Math.floor(window.innerWidth / 40))
+			setLoaded(true)
+		}
+		else if (typeof document == 'undefined') {
+			setLoaded(false)
+		}
+	}, [isLoaded])
 
 	function getMinCost(paths) {
 		let minPath = paths[0].path
@@ -207,7 +260,7 @@ export default function Home() {
 		else if (!cell.classList.contains("goal") && !cell.classList.contains("start") && goal == -1) {
 			cell.classList.add("goal")
 			setGoal(+cell.getAttribute("id"))
-			
+
 		}
 
 		else if (cell.classList.contains("blocker")) {
@@ -232,8 +285,9 @@ export default function Home() {
 		const cell = e.target
 
 		if (mouseDown && buildMode) {
-			if (!cell.classList.contains("goal") && !cell.classList.contains("start") && !cell.classList.contains("blocker") ) {
+			if (!cell.classList.contains("goal") && !cell.classList.contains("start") && !cell.classList.contains("blocker")) {
 				cell.classList.remove("subpath")
+				cell.classList.remove("exploredpath")
 				cell.classList.add("blocker")
 				setBuildMode(true)
 			}
@@ -244,9 +298,11 @@ export default function Home() {
 			// setMouseDown(false)
 		}
 
-		else if (mouseDown && !buildMode){
-			if (!cell.classList.contains("goal") && !cell.classList.contains("start") && !cell.classList.contains("blocker") ) {
+		else if (mouseDown && !buildMode) {
+			if (!cell.classList.contains("goal") &&
+				!cell.classList.contains("start") && !cell.classList.contains("blocker")) {
 				cell.classList.remove("subpath")
+				cell.classList.remove("exploredpath")
 				cell.classList.add("blocker")
 				// setBuildMode(true)
 			}
@@ -259,22 +315,28 @@ export default function Home() {
 
 	}
 
-	function generateGrid(size) {
+	function generateGrid() {
+
+
+		let size = numCols * numRows
+		console.log(numCols)
+		console.log(numRows)
 		let count = 0
 		let divs = []
 
 		let yIndex = 0
 		while (count != size) {
 
-			count % 60 == 0 ? yIndex++ : yIndex
+			count % numCols == 0 ? yIndex++ : yIndex
 			let pos = {
-				x: count % 60,
+				x: count % numCols,
 				y: yIndex
 			}
-			divs.push(<div key={count} id={count} x={pos.x} y={pos.y - 1} className="cell flex justify-center items-center relative w-[30px] h-[30px] border-[0.1px] border-black" data-cell onMouseEnter={handleCellDrag} onMouseDown={handleCellClick} ></div >)
+			divs.push(<div key={count} id={count} x={pos.x} y={pos.y - 1} className="cell w-[40px] h-[40px] border-[0.1px] border-black m-0 p-0" data-cell onMouseEnter={handleCellDrag} onMouseDown={handleCellClick} ></div >)
 			count += 1
 
 		}
+		// setNumCols(numcols)
 
 		return (<>
 			{divs.map(d => d)}
@@ -308,7 +370,7 @@ export default function Home() {
 		toggleBuildMode()
 
 	}
-	
+
 	function toggleHueristic(e) {
 		e.preventDefault()
 		hueristicMode == 0 ? setHueristicMode(1) : setHueristicMode(0)
@@ -316,33 +378,27 @@ export default function Home() {
 	}
 
 	return (
-		<div className="flex-col flex">
+		<div className="flex w-screen h-screen overflow-hidden">
 			<div>
 				<Head>
 					<title>A Star Algorithm</title>
 					{/* <meta name="description" /> */}
 				</Head>
 				{/* <input>Build Mode</input> */}
-				<nav className="flex p-5 justify-items-start items-center bg-black h-24 w-screen">
+				<nav className="flex justify-items-start items-center bg-black h-24 w-screen overflow-hidden">
 					<button className="h-[50%] border border-slate-50 rounded ml-3 pl-2 pr-2 text-white hover:underline" onClick={aStarSearch}>Begin</button>
 					<button className="h-[50%] border border-slate-50 rounded ml-3 pl-2 pr-2 text-white hover:underline" onClick={clearGrid}>Clear</button>
-					<button className="h-[50%] border border-slate-50 rounded ml-3 pl-2 pr-2 text-white hover:underline" onClick={togglePathMode}>{pathMode ? "Paths Mode" : "Explored Mode"}</button>
+					{/* <button className="h-[50%] border border-slate-50 rounded ml-3 pl-2 pr-2 text-white hover:underline" onClick={togglePathMode}>{pathMode ? "Paths Mode" : "Explored Mode"}</button> */}
 					<button className="h-[50%] border border-slate-50 rounded ml-3 pl-2 pr-2 text-white hover:underline" onClick={toggleHueristic}>{hueristicMode == 0 ? "Euclidean" : "Manhattan"}</button>
-					{/* <label type="checkbox" className="h-[50%] text-white m-3 " htmlFor="buildmode">Build Mode</label> */}
-					{/* <input id="buildmode" type="checkbox" className="h-[50%]" onClick={() => toggleBuildMode()}></input> */}
 					<div>
 						<h1 className="h-[50%] ml-3 pl-2 pr-2 text-white">Start: {start}</h1>
 						<h1 className="h-[50%] ml-3 pl-2 pr-2  text-white">Goal: {goal}</h1>
 					</div>
 					<h1 className="h-[50%] ml-3 pl-2 text-white">Cost: {finalCost}</h1>
-					{/* <ul className="h-[50%] w-80 ml-3 pl-2 pr-2 flex gap-2 text-white">
-						{path.map(cell => {
-							return <li key={cell}>{cell},</li>
-						})}
-					</ul> */}
+
 				</nav>
-				<div className="board grid w-screen h-screen justify-center content-center items-center grid-cols-tic-tac m-0 p-0" onMouseDown={() => setMouseDown(true)} onMouseUp={() => setMouseDown(false)} id="board">
-					{generateGrid(numCells)}
+				<div className="board flex w-screen h-screen gap-0 justify-start items-start flex-wrap m-0 p-0 overflow-hidden" onMouseDown={() => setMouseDown(true)} onMouseUp={() => setMouseDown(false)} id="board">
+					{isLoaded ? generateGrid() : null}
 
 				</div>
 
