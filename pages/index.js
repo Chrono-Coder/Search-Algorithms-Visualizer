@@ -171,24 +171,27 @@ export default function Home() {
 	}
 
 	async function animatePath2() {
-		selectAll(".subpath").classed("subpath", false)
-		selectAll(".exploredpath").classed("exploredpath", false)
-		let cell = 0
-		let visited = []
-		for (let i = 0; i < exploredPath.length; i++) {
-			cell = exploredPath[i]
-			if (!visited.includes(cell)) {
-				if (path.includes(cell)) {
-					document.getElementById(cell).classList.add("subpath")
+		// if (path.length != 0 && exploredPath.length != 0) {
+			selectAll(".subpath").classed("subpath", false)
+			selectAll(".exploredpath").classed("exploredpath", false)
+			let cell = 0
+			let visited = []
+			for (let i = 0; i < exploredPath.length; i++) {
+				cell = exploredPath[i]
+				if (!visited.includes(cell)) {
+					if (path.includes(cell)) {
+						document.getElementById(cell).classList.add("subpath")
+					}
+					else {
+						document.getElementById(cell).classList.add("exploredpath")
+					}
+					visited.push(cell)
+					await delay(20)
 				}
-				else {
-					document.getElementById(cell).classList.add("exploredpath")
-				}
-				visited.push(cell)
-				await delay(20)
-			}
 
-		}
+			}
+		// }
+
 	}
 
 
@@ -367,6 +370,7 @@ export default function Home() {
 		setStart(-1)
 		setGoal(-1)
 		setPath([])
+		setExploredPath([])
 		toggleBuildMode()
 
 	}
