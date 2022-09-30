@@ -11,29 +11,27 @@
     cursor: pointer;
   }
   .cell.start {
-    background-color: lightgreen;
+    background-color: rgb(27, 121, 27);
     
   }
 
   .cell.goal {
-    background-color: #ff0000d5;
+    background-color: #db2424d5;
   }
   .cell.subpath:not(.start):not(.goal) {
-    background-color: #45f3f3;
+    background-color: #53E2D4;
     transition: ease-in-out 300ms;
 
   }
 
   .cell.exploredpath:not(.start):not(.goal) {
-    background-color: #370c9c;
+    background-color: #7b506f;
     transition: ease-in-out 300ms;
 
   }
   .cell.blocker {
-    background-color: #000000;
+    background-color: #03191e;
   }
-  .cell.blocker.subpath {
-    /* background-color: #000000; */
-  }
+ 
  
 }

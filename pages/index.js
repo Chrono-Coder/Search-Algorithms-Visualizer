@@ -18,7 +18,7 @@ export default function Home() {
 	const [isLoaded, setLoaded] = useState(false)
 	const [numCols, setNumCols] = useState(0)
 	const [numRows, setNumRows] = useState(0)
-
+	const [filter, setFilter] = useState("aStar")
 	// const [deleting, setDeleting] = useState(false)
 
 	const delay = async (ms = 1000) =>
@@ -50,7 +50,7 @@ export default function Home() {
 		}
 	}, [pathMode])
 
-	function aStarSearch(e) {
+	function greedySearch(e) {
 		// e.preventDefault()
 		// path.forEach(cell => {
 		// 	let c = document.getElementById(cell)
@@ -91,10 +91,11 @@ export default function Home() {
 
 					const appendPaths = (ID) => {
 						if (ID > 0 && ID < numCells && !document.getElementById(ID).classList.contains("blocker") && !visited.includes(ID)) {
-							paths.push({ path: curPath.path.concat([ID]), cost: getDistCellID(ID, goal) })
+							paths.push({ path: curPath.path.concat([ID]), cost: getDistCellID(ID, goal) + 1 })
 							// curPath.path.forEach(cell => {
 							// 	explored.push(cell)
 							// });
+
 						}
 					}
 
@@ -104,12 +105,13 @@ export default function Home() {
 					appendPaths(right)
 					if (hueristicMode == 0) {
 						appendPaths(upRight)
-						appendPaths(upLeft)
 						appendPaths(downRight)
+						appendPaths(upLeft)
 						appendPaths(downLeft)
 					}
 
 					visited.push(curNode)
+
 				}
 
 				else if (visited.includes(curNode) && curNode != goal) {
@@ -132,6 +134,153 @@ export default function Home() {
 		}
 
 	}
+
+	function aStarSearch(e) {
+		let numCells = numCols * numRows
+		let visited = []
+		let explored = []
+		let paths = [
+			{
+				path: [start],
+				cost: getDistCellID(start, goal),
+				index: 0
+			}
+		]
+
+		if (start != -1 && goal != -1) {
+			let found = false
+			while (!found && paths.length != 0) {
+				let curPath = getMinCost(paths)
+				let curNode = (curPath.path[curPath.path.length - 1])
+				paths = paths.slice(0, curPath.index).concat(paths.slice(curPath.index + 1))
+				if (curNode != goal && !visited.includes(curNode)) {
+
+					let up = curNode - numCols
+					let down = curNode + numCols
+					let left = curNode - 1
+					let right = curNode + 1
+					let upRight = curNode - numCols + 1
+					let upLeft = curNode - numCols - 1
+					let downRight = curNode + numCols + 1
+					let downLeft = curNode + numCols - 1
+
+					const appendPaths = (ID) => {
+						if (ID > 0 && ID < numCells && !document.getElementById(ID).classList.contains("blocker") && !visited.includes(ID)) {
+							let temp = curPath.path.concat([ID])
+							//(h(n) = g(n)
+							paths.push({ path: temp, cost: getDistCellID(ID, goal) + temp.length })
+
+						}
+					}
+
+					appendPaths(up)
+					appendPaths(down)
+					appendPaths(left)
+					appendPaths(right)
+					if (hueristicMode == 0) {
+						appendPaths(upRight)
+						appendPaths(downRight)
+						appendPaths(upLeft)
+						appendPaths(downLeft)
+					}
+
+					visited.push(curNode)
+				}
+
+				else if (visited.includes(curNode) && curNode != goal) {
+
+				}
+				else {
+					found = true
+					setPath(curPath.path)
+					setCost(curPath.cost)
+					paths.forEach(({ path }) => {
+						path.forEach(cell => {
+							explored.push(cell)
+						});
+					});
+					setExploredPath(explored)
+
+				}
+
+			}
+		}
+
+	}
+
+	function uniformSearch(e) {
+		let numCells = numCols * numRows
+		let visited = []
+		let explored = []
+		let paths = [
+			{
+				path: [start],
+				cost: getDistCellID(start, goal),
+				index: 0
+			}
+		]
+
+		if (start != -1 && goal != -1) {
+			let found = false
+			while (!found && paths.length != 0) {
+				let curPath = getMinCost(paths)
+				let curNode = (curPath.path[curPath.path.length - 1])
+				paths = paths.slice(0, curPath.index).concat(paths.slice(curPath.index + 1))
+				if (curNode != goal && !visited.includes(curNode)) {
+
+					let up = curNode - numCols
+					let down = curNode + numCols
+					let left = curNode - 1
+					let right = curNode + 1
+					let upRight = curNode - numCols + 1
+					let upLeft = curNode - numCols - 1
+					let downRight = curNode + numCols + 1
+					let downLeft = curNode + numCols - 1
+
+					const appendPaths = (ID) => {
+						if (ID > 0 && ID < numCells && !document.getElementById(ID).classList.contains("blocker") && !visited.includes(ID)) {
+							let temp = curPath.path.concat([ID])
+							//(h(n) = g(n)
+							paths.push({ path: temp, cost: temp.length })
+
+						}
+					}
+
+					appendPaths(up)
+					appendPaths(down)
+					appendPaths(left)
+					appendPaths(right)
+					if (hueristicMode == 0) {
+						appendPaths(upRight)
+						appendPaths(downRight)
+						appendPaths(upLeft)
+						appendPaths(downLeft)
+					}
+
+					visited.push(curNode)
+				}
+
+				else if (visited.includes(curNode) && curNode != goal) {
+
+				}
+				else {
+					found = true
+					setPath(curPath.path)
+					setCost(curPath.cost)
+					paths.forEach(({ path }) => {
+						path.forEach(cell => {
+							explored.push(cell)
+						});
+					});
+					setExploredPath(explored)
+
+				}
+
+			}
+		}
+
+	}
+
 	useEffect(() => {
 		animatePath2()
 	}, [finalCost, path, exploredPath])
@@ -172,28 +321,56 @@ export default function Home() {
 
 	async function animatePath2() {
 		// if (path.length != 0 && exploredPath.length != 0) {
-			selectAll(".subpath").classed("subpath", false)
-			selectAll(".exploredpath").classed("exploredpath", false)
-			let cell = 0
-			let visited = []
-			for (let i = 0; i < exploredPath.length; i++) {
-				cell = exploredPath[i]
-				if (!visited.includes(cell)) {
-					if (path.includes(cell)) {
-						document.getElementById(cell).classList.add("subpath")
-					}
-					else {
-						document.getElementById(cell).classList.add("exploredpath")
-					}
-					visited.push(cell)
-					await delay(20)
-				}
+		selectAll(".subpath").classed("subpath", false)
+		selectAll(".exploredpath").classed("exploredpath", false)
+		let cell = 0
+		let visited = []
+		for (let i = 0; i < exploredPath.length; i++) {
+			cell = exploredPath[i]
+			if (!visited.includes(cell)) {
+				// if (path.includes(cell)) {
+				// 	document.getElementById(cell).classList.add("subpath")
+				// }
+				// else {
+				document.getElementById(cell).classList.add("exploredpath")
+				// document.getElementById(cell).classList.remove("border-[0.1px]")
+				// }
+				visited.push(cell)
+				await delay(10)
+			}
+
+		}
+		visited = []
+		for (let i = 0; i < path.length; i++) {
+			cell = path[i]
+			// cell = exploredPath[i]
+			if (!visited.includes(cell)) {
+				document.getElementById(cell).classList.remove("exploredpath")
+				document.getElementById(cell).classList.add("subpath")
+				// document.getElementById(cell).classList.remove("border-[0.1px]")
+
+				await delay(10)
+				visited.push(cell)
 
 			}
+
+		}
 		// }
 
 	}
 
+	function randomizeGrid(e) {
+		e.preventDefault()
+		const cells = document.querySelectorAll("[data-cell]")
+		cells.forEach(cell => {
+			let rand = Math.floor(Math.random() * 10)
+			cell.classList.remove('blocker')
+			if (rand >= 5) {
+				cell.classList.add('blocker')
+
+			}
+		});
+	}
 
 	useEffect(() => {
 		if (typeof document != 'undefined' && !isLoaded) {
@@ -322,8 +499,6 @@ export default function Home() {
 
 
 		let size = numCols * numRows
-		console.log(numCols)
-		console.log(numRows)
 		let count = 0
 		let divs = []
 
@@ -335,7 +510,7 @@ export default function Home() {
 				x: count % numCols,
 				y: yIndex
 			}
-			divs.push(<div key={count} id={count} x={pos.x} y={pos.y - 1} className="cell w-[40px] h-[40px] border-[0.1px] border-black m-0 p-0" data-cell onMouseEnter={handleCellDrag} onMouseDown={handleCellClick} ></div >)
+			divs.push(<div key={count} id={count} x={pos.x} y={pos.y - 1} className="cell w-[40px] h-[40px] border-[0.1px]  m-0 p-0" data-cell onMouseEnter={handleCellDrag} onMouseDown={handleCellClick} ></div >)
 			count += 1
 
 		}
@@ -344,16 +519,6 @@ export default function Home() {
 		return (<>
 			{divs.map(d => d)}
 		</>)
-	}
-
-	function toggleBuildMode() {
-		buildMode ? setBuildMode(false) : setBuildMode(true)
-	}
-
-	function togglePathMode(e) {
-		e.preventDefault()
-		pathMode ? setPathMode(false) : setPathMode(true)
-		// animatePath()
 	}
 
 	function clearGrid(e) {
@@ -371,7 +536,37 @@ export default function Home() {
 		setGoal(-1)
 		setPath([])
 		setExploredPath([])
-		toggleBuildMode()
+		// toggleBuildMode()
+
+	}
+
+	function clearWalls(e) {
+		e.preventDefault()
+		const cells = document.querySelectorAll("[data-cell]")
+		cells.forEach(cell => {
+			cell.classList.remove('blocker')
+		})
+		// setStart(-1)
+		// setGoal(-1)
+		// setPath([])
+		// setExploredPath([])
+		// toggleBuildMode()
+		filter == "aStar" ? aStarSearch(e) : filter == "greedy" ? greedySearch(e) : uniformSearch(e)
+	}
+
+	function clearPath(e) {
+		e.preventDefault()
+		const cells = document.querySelectorAll("[data-cell]")
+		cells.forEach(cell => {
+			cell.classList.remove('goal')
+			cell.classList.remove('start')
+			cell.classList.remove('subpath')
+			cell.classList.remove('exploredpath')
+		})
+		setStart(-1)
+		setGoal(-1)
+		setPath([])
+		setExploredPath([])
 
 	}
 
@@ -390,8 +585,20 @@ export default function Home() {
 				</Head>
 				{/* <input>Build Mode</input> */}
 				<nav className="flex justify-items-start items-center bg-black h-24 w-screen overflow-hidden">
-					<button className="h-[50%] border border-slate-50 rounded ml-3 pl-2 pr-2 text-white hover:underline" onClick={aStarSearch}>Begin</button>
-					<button className="h-[50%] border border-slate-50 rounded ml-3 pl-2 pr-2 text-white hover:underline" onClick={clearGrid}>Clear</button>
+
+					<select name="Filter" id="Filter" defaultValue="aStar" required className="h-[50%] border border-slate-50 rounded bg-black ml-3 pl-2 pr-2 text-white hover:underline" onChange={() => {
+						setFilter(document.getElementById('Filter').value)
+					}}  >
+						{/* <option value="none" disabled hidden>Select an Option</option> */}
+						<option value="aStar">A * Search</option>
+						<option value="greedy">Greedy Search</option>
+						<option value="uniform">Uniform Search</option>
+					</select>
+					<button className="h-[50%] border border-slate-50 rounded ml-3 pl-2 pr-2 text-white hover:underline" onClick={filter == "aStar" ? aStarSearch : filter == "greedy" ? greedySearch : uniformSearch}>Search</button>
+					<button className="h-[50%] border border-slate-50 rounded ml-3 pl-2 pr-2 text-white hover:underline" onClick={clearGrid}>Clear All</button>
+					<button className="h-[50%] border border-slate-50 rounded ml-3 pl-2 pr-2 text-white hover:underline" onClick={clearWalls}>Clear Walls</button>
+					<button className="h-[50%] border border-slate-50 rounded ml-3 pl-2 pr-2 text-white hover:underline" onClick={clearPath}>Clear Path</button>
+					<button className="h-[50%] border border-slate-50 rounded ml-3 pl-2 pr-2 text-white hover:underline" onClick={randomizeGrid}>Randomize Grid</button>
 					{/* <button className="h-[50%] border border-slate-50 rounded ml-3 pl-2 pr-2 text-white hover:underline" onClick={togglePathMode}>{pathMode ? "Paths Mode" : "Explored Mode"}</button> */}
 					<button className="h-[50%] border border-slate-50 rounded ml-3 pl-2 pr-2 text-white hover:underline" onClick={toggleHueristic}>{hueristicMode == 0 ? "Euclidean" : "Manhattan"}</button>
 					<div>
