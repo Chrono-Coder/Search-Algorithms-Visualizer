@@ -11,26 +11,26 @@
     cursor: pointer;
   }
   .cell.start {
-    background-color: rgb(27, 121, 27);
+    background-color: rgb(65, 236, 65);
     
   }
 
   .cell.goal {
-    background-color: #db2424d5;
+    background-color: #c90303;
   }
   .cell.subpath:not(.start):not(.goal) {
-    background-color: #53E2D4;
+    background-color: #e9db13;
     transition: ease-in-out 300ms;
 
   }
 
   .cell.exploredpath:not(.start):not(.goal) {
-    background-color: #7b506f;
+    background-color: #6d1a55;
     transition: ease-in-out 300ms;
 
   }
   .cell.blocker {
-    background-color: #03191e;
+    background-color: #000000;
   }
  
  
