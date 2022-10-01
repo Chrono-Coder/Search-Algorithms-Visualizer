@@ -64,33 +64,41 @@ export default function Home() {
 					let upLeft = curNode - numCols - 1
 					let downRight = curNode + numCols + 1
 					let downLeft = curNode + numCols - 1
+					let canDiagRight = false
+					let canDiagLeft = false
+					const appendPaths = (ID, position = '') => {
+						let c = document.getElementById(ID)
+						if (ID > 0 && ID < numCells && !c.classList.contains('blocker') && !visited.includes(ID)) {
+							let temp = curPath.path.concat([ID])
+							//(h(n) = g(n)
+							if (position.includes('right') && c.getAttribute('x') != 0) {
+								canDiagRight = true
+								paths.push({ path: temp, cost: getDistCellID(ID, goal) })
 
-					const appendPaths = (ID) => {
-						if (ID > 0 && ID < numCells && !document.getElementById(ID).classList.contains('blocker') && !visited.includes(ID)) {
-							paths.push({ path: curPath.path.concat([ID]), cost: getDistCellID(ID, goal) })
+							}
+							else if (position.includes('left') && c.getAttribute('x') != numCols - 1) {
+								canDiagLeft = true
+								paths.push({ path: temp, cost: getDistCellID(ID, goal) })
+
+							}
+							else if (position == '')
+								paths.push({ path: temp, cost: getDistCellID(ID, goal) })
+
+
 						}
 					}
+
 					appendPaths(up)
+					appendPaths(right, 'right')
 					appendPaths(down)
-					if (left > 0 && left < numCells && document.getElementById(left).getAttribute('x') != numCols - 1) {
-						appendPaths(left)
+					appendPaths(left, 'left')
+					if (canDiagLeft) {
+						appendPaths(upLeft)
+						appendPaths(downLeft)
 					}
-					if (right > 0 && right < numCells && document.getElementById(right).getAttribute('x') != 0) {
-						appendPaths(right)
-					}
-					if (hueristicMode == 0) {
-						if (upRight > 0 && upRight < numCells && document.getElementById(upRight).getAttribute('x') != 0) {
-							appendPaths(upRight)
-						}
-						if (upLeft > 0 && upLeft < numCells && document.getElementById(upLeft).getAttribute('x') != numCols - 1) {
-							appendPaths(upLeft)
-						}
-						if (downRight > 0 && downRight < numCells && document.getElementById(downRight).getAttribute('x') != 0) {
-							appendPaths(downRight)
-						}
-						if (downLeft > 0 && downLeft < numCells && document.getElementById(downLeft).getAttribute('x') != numCols - 1) {
-							appendPaths(downLeft)
-						}
+					if (canDiagRight) {
+						appendPaths(upRight)
+						appendPaths(downRight)
 					}
 
 					visited.push(curNode)
@@ -142,36 +150,38 @@ export default function Home() {
 					let upLeft = curNode - numCols - 1
 					let downRight = curNode + numCols + 1
 					let downLeft = curNode + numCols - 1
-
-					const appendPaths = (ID) => {
-						if (ID > 0 && ID < numCells && !document.getElementById(ID).classList.contains('blocker') && !visited.includes(ID)) {
+					let canDiagRight = false
+					let canDiagLeft = false
+					const appendPaths = (ID, position = '') => {
+						let c = document.getElementById(ID)
+						if (ID > 0 && ID < numCells && !c.classList.contains('blocker') && !visited.includes(ID)) {
 							let temp = curPath.path.concat([ID])
 							//(h(n) = g(n)
-							paths.push({ path: temp, cost: getDistCellID(ID, goal) + temp.length })
+							if (position.includes('right') && c.getAttribute('x') != 0) {
+								canDiagRight = true
+								paths.push({ path: temp, cost: getDistCellID(ID, goal) + temp.length })
+							}
+							else if (position.includes('left') && c.getAttribute('x') != numCols - 1) {
+								canDiagLeft = true
+								paths.push({ path: temp, cost: getDistCellID(ID, goal) + temp.length })
+							}
+							else if (position == '')
+								paths.push({ path: temp, cost: getDistCellID(ID, goal) + temp.length })
+
 						}
 					}
 
 					appendPaths(up)
+					appendPaths(right, 'right')
 					appendPaths(down)
-					if (left > 0 && left < numCells && document.getElementById(left).getAttribute('x') != numCols - 1) {
-						appendPaths(left)
+					appendPaths(left, 'left')
+					if (canDiagLeft) {
+						appendPaths(upLeft)
+						appendPaths(downLeft)
 					}
-					if (right > 0 && right < numCells && document.getElementById(right).getAttribute('x') != 0) {
-						appendPaths(right)
-					}
-					if (hueristicMode == 0) {
-						if (upRight > 0 && upRight < numCells && document.getElementById(upRight).getAttribute('x') != 0) {
-							appendPaths(upRight)
-						}
-						if (upLeft > 0 && upLeft < numCells && document.getElementById(upLeft).getAttribute('x') != numCols - 1) {
-							appendPaths(upLeft)
-						}
-						if (downRight > 0 && downRight < numCells && document.getElementById(downRight).getAttribute('x') != 0) {
-							appendPaths(downRight)
-						}
-						if (downLeft > 0 && downLeft < numCells && document.getElementById(downLeft).getAttribute('x') != numCols - 1) {
-							appendPaths(downLeft)
-						}
+					if (canDiagRight) {
+						appendPaths(upRight)
+						appendPaths(downRight)
 					}
 
 					visited.push(curNode)
@@ -182,7 +192,7 @@ export default function Home() {
 				else {
 					found = true
 					setPath(curPath.path)
-					setCost(curPath.cost)
+					setCost(curPath.path.length)
 
 					setExploredPath(explored)
 				}
@@ -224,45 +234,42 @@ export default function Home() {
 					let upLeft = curNode - numCols - 1
 					let downRight = curNode + numCols + 1
 					let downLeft = curNode + numCols - 1
-					// console.log('Current Node: ', curNode)
-					// // console.log('up:', up)
-					// // console.log('down: ', down)
-					// // console.log('left: ', left)
-					// // console.log('right: ', right)
-					// console.log('upRight: ', upRight)
-					// console.log('upLeft: ', upLeft)
-					// console.log('downRight: ', downRight)
-					// console.log('downLeft: ', downLeft)
-					const appendPaths = (ID) => {
 
-						if (ID > 0 && ID < numCells && !document.getElementById(ID).classList.contains('blocker') && !visited.includes(ID)) {
+					let canDiagRight = false
+					let canDiagLeft = false
+					const appendPaths = (ID, position = '') => {
+						let c = document.getElementById(ID)
+						if (ID > 0 && ID < numCells && !c.classList.contains('blocker') && !visited.includes(ID)) {
 							let temp = curPath.path.concat([ID])
+							//(h(n) = g(n)
+							if (position.includes('right') && c.getAttribute('x') != 0) {
+								canDiagRight = true
+								paths.push({ path: temp, cost: temp.length })
 
-							//(h(n) = 0, f(n) = g(n)
-							paths.push({ path: temp, cost: temp.length })
+							}
+							else if (position.includes('left') && c.getAttribute('x') != numCols - 1) {
+								canDiagLeft = true
+								paths.push({ path: temp, cost: temp.length })
+
+							}
+							else if (position == '')
+								paths.push({ path: temp, cost: temp.length })
+
+
 						}
 					}
+
 					appendPaths(up)
+					appendPaths(right, 'right')
 					appendPaths(down)
-					if (left > 0 && left < numCells && document.getElementById(left).getAttribute('x') != numCols - 1) {
-						appendPaths(left)
+					appendPaths(left, 'left')
+					if (canDiagLeft) {
+						appendPaths(upLeft)
+						appendPaths(downLeft)
 					}
-					if (right > 0 && right < numCells && document.getElementById(right).getAttribute('x') != 0) {
-						appendPaths(right)
-					}
-					if (hueristicMode == 0) {
-						if (upRight > 0 && upRight < numCells && document.getElementById(upRight).getAttribute('x') != 0) {
-							appendPaths(upRight)
-						} 
-						if (upLeft > 0 && upLeft < numCells && document.getElementById(upLeft).getAttribute('x') != numCols - 1) {
-							appendPaths(upLeft)
-						}
-						if (downRight > 0 && downRight < numCells && document.getElementById(downRight).getAttribute('x') != 0) {
-							appendPaths(downRight)
-						}
-						if (downLeft > 0 && downLeft < numCells && document.getElementById(downLeft).getAttribute('x') != numCols - 1) {
-							appendPaths(downLeft)
-						}
+					if (canDiagRight) {
+						appendPaths(upRight)
+						appendPaths(downRight)
 					}
 
 					visited.push(curNode)
@@ -476,7 +483,7 @@ export default function Home() {
 					data-cell
 					onMouseEnter={handleCellDrag}
 					onMouseDown={handleCellClick}
-				>{count}</div>
+				></div>
 			)
 
 			count += 1
