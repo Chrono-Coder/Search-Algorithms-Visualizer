@@ -472,7 +472,7 @@ export default function Home() {
 					id={count}
 					x={pos.x}
 					y={pos.y - 1}
-					className="cell w-[40px] h-[40px] border-[0.1px] border-gray-900 m-0 p-0"
+					className='cell w-[40px] h-[40px] border-[0.1px] border-gray-900 m-0 p-0'
 					data-cell
 					onMouseEnter={handleCellDrag}
 					onMouseDown={handleCellClick}
@@ -532,51 +532,51 @@ export default function Home() {
 	}
 
 	return (
-		<div className="flex w-screen h-screen overflow-hidden">
+		<div className='flex w-screen h-screen overflow-hidden'>
 			<div>
 				<Head>
 					<title>A Star Algorithm</title>
 				</Head>
-				<div id="navbar" className="z-10 right-11 top-11 p-6 fixed flex-col bg-opacity-50 rounded-lg hover:bg-opacity-90 transition-all ease-in-out flex justify-items-start items-center gap-4 bg-blue-900 w-[10%] h-auto overflow-hidden">
+				<div id='navbar' className='z-10 right-11 top-11 p-6 fixed flex-col bg-opacity-50 rounded-lg hover:bg-opacity-90 transition-all ease-in-out flex justify-items-start items-center gap-4 bg-blue-900 w-[10%] h-auto overflow-hidden'>
 					<select
-						name="Filter"
-						id="Filter"
-						defaultValue="aStar"
+						name='Filter'
+						id='Filter'
+						defaultValue='aStar'
 						required
-						className="h-[50%] bg-blue-900 ml-3 pl-2 pr-2 bg-opacity-0 text-white hover:bg-opacity-90 hover:underline"
+						className='h-[50%] bg-blue-900 ml-3 pl-2 pr-2 bg-opacity-0 text-white hover:bg-opacity-90 hover:underline'
 						onChange={() => {
 							setFilter(document.getElementById('Filter').value)
 						}}
 					>
-						<option value="aStar">A * Search</option>
-						<option value="greedy">Greedy Search</option>
-						<option value="uniform">Uniform Search</option>
+						<option value='aStar'>A * Search</option>
+						<option value='greedy'>Greedy Search</option>
+						<option value='uniform'>Uniform Search</option>
 					</select>
-					<button className="h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline" onClick={filter == 'aStar' ? aStarSearch : filter == 'greedy' ? greedySearch : uniformSearch}>
+					<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={filter == 'aStar' ? aStarSearch : filter == 'greedy' ? greedySearch : uniformSearch}>
 						Search
 					</button>
-					<button className="h-[50%] ml-3 pl-2 pr-2 text-white hover:underline" onClick={clearGrid}>
+					<button className='h-[50%] ml-3 pl-2 pr-2 text-white hover:underline' onClick={clearGrid}>
 						Clear All
 					</button>
-					<button className="h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline" onClick={clearWalls}>
+					<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={clearWalls}>
 						Clear Walls
 					</button>
-					<button className="h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline" onClick={clearPath}>
+					<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={clearPath}>
 						Clear Path
 					</button>
-					<button className="h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline" onClick={randomizeGrid}>
+					<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={randomizeGrid}>
 						Randomize Grid
 					</button>
-					<button className=" ml-3 pl-2 pr-2 text-white hover:underline" onClick={toggleHueristic}>
+					<button className=' ml-3 pl-2 pr-2 text-white hover:underline' onClick={toggleHueristic}>
 						{hueristicMode == 0 ? 'Euclidean' : 'Manhattan'}
 					</button>
-					<h1 className="ml-3 pl-2 pr-2 text-white">Cost: {finalCost}</h1>
+					<h1 className='ml-3 pl-2 pr-2 text-white'>Cost: {finalCost}</h1>
 				</div>
 				<div
-					className="board flex w-screen h-screen gap-0 justify-start items-start flex-wrap m-0 p-0 overflow-hidden"
+					className='board flex w-screen h-screen gap-0 justify-start items-start flex-wrap m-0 p-0 overflow-hidden'
 					onMouseDown={() => setMouseDown(true)}
 					onMouseUp={() => setMouseDown(false)}
-					id="board"
+					id='board'
 				>
 					{isLoaded ? generateGrid() : null}
 				</div>
