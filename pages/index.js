@@ -18,24 +18,20 @@ export default function Home() {
 	const [numRows, setNumRows] = useState(0)
 	const [filter, setFilter] = useState('aStar')
 
-	const delay = async (ms = 1000) =>
-		new Promise(resolve => setTimeout(resolve, ms))
-
+	const delay = async (ms = 1000) => new Promise((resolve) => setTimeout(resolve, ms))
 
 	useEffect(() => {
 		if (typeof document != 'undefined' && !isLoaded) {
-			setNumRows((Math.floor(window.innerHeight / 40) + 1))
+			setNumRows(Math.floor(window.innerHeight / 40) + 1)
 			setNumCols(Math.floor(window.innerWidth / 40))
 			setLoaded(true)
-		}
-		else if (typeof document == 'undefined') {
+		} else if (typeof document == 'undefined') {
 			setLoaded(false)
 		}
 	}, [isLoaded])
 
 	function greedySearch(e) {
-		if (start == -1)
-			return
+		if (start == -1) return
 		let numCells = numCols * numRows
 		let visited = []
 		let explored = []
@@ -43,23 +39,22 @@ export default function Home() {
 			{
 				path: [start],
 				cost: getDistCellID(start, goal),
-				index: 0
-			}
+				index: 0,
+			},
 		]
 
 		if (start != -1 && goal != -1) {
 			let found = false
 			while (!found && paths.length != 0) {
 				let curPath = getMinCost(paths)
-				let curNode = (curPath.path[curPath.path.length - 1])
+				let curNode = curPath.path[curPath.path.length - 1]
 				paths.forEach(({ path }) => {
-					path.forEach(cell => {
+					path.forEach((cell) => {
 						explored.push(cell)
 					})
 				})
 				paths = paths.slice(0, curPath.index).concat(paths.slice(curPath.index + 1))
 				if (curNode != goal && !visited.includes(curNode)) {
-
 					let up = curNode - numCols
 					let down = curNode + numCols
 					let left = curNode - 1
@@ -72,7 +67,6 @@ export default function Home() {
 					const appendPaths = (ID) => {
 						if (ID > 0 && ID < numCells && !document.getElementById(ID).classList.contains('blocker') && !visited.includes(ID)) {
 							paths.push({ path: curPath.path.concat([ID]), cost: getDistCellID(ID, goal) })
-
 						}
 					}
 					appendPaths(up)
@@ -87,29 +81,21 @@ export default function Home() {
 					}
 
 					visited.push(curNode)
-
-				}
-				else if (visited.includes(curNode) && curNode != goal) {
+				} else if (visited.includes(curNode) && curNode != goal) {
 					continue
-				}
-
-				else {
+				} else {
 					found = true
 					setPath(curPath.path)
 					setCost(curPath.path.length)
 
 					setExploredPath(explored)
-
 				}
-
 			}
 		}
-
 	}
 
 	function aStarSearch(e) {
-		if (start == -1)
-			return
+		if (start == -1) return
 		let numCells = numCols * numRows
 		let visited = []
 		let explored = []
@@ -117,23 +103,22 @@ export default function Home() {
 			{
 				path: [start],
 				cost: getDistCellID(start, goal),
-				index: 0
-			}
+				index: 0,
+			},
 		]
 
 		if (start != -1 && goal != -1) {
 			let found = false
 			while (!found && paths.length != 0) {
 				let curPath = getMinCost(paths)
-				let curNode = (curPath.path[curPath.path.length - 1])
+				let curNode = curPath.path[curPath.path.length - 1]
 				paths.forEach(({ path }) => {
-					path.forEach(cell => {
+					path.forEach((cell) => {
 						explored.push(cell)
 					})
 				})
 				paths = paths.slice(0, curPath.index).concat(paths.slice(curPath.index + 1))
 				if (curNode != goal && !visited.includes(curNode)) {
-
 					let up = curNode - numCols
 					let down = curNode + numCols
 					let left = curNode - 1
@@ -148,7 +133,6 @@ export default function Home() {
 							let temp = curPath.path.concat([ID])
 							//(h(n) = g(n)
 							paths.push({ path: temp, cost: getDistCellID(ID, goal) + temp.length })
-
 						}
 					}
 
@@ -164,29 +148,21 @@ export default function Home() {
 					}
 
 					visited.push(curNode)
-
-				}
-
-				else if (visited.includes(curNode) && curNode != goal) {
+				} else if (visited.includes(curNode) && curNode != goal) {
 					continue
-				}
-				else {
+				} else {
 					found = true
 					setPath(curPath.path)
 					setCost(curPath.cost)
 
 					setExploredPath(explored)
-
 				}
-
 			}
 		}
-
 	}
 
 	function uniformSearch(e) {
-		if (start == -1)
-			return
+		if (start == -1) return
 		let numCells = numCols * numRows
 		let visited = []
 		let explored = []
@@ -194,23 +170,22 @@ export default function Home() {
 			{
 				path: [start],
 				cost: 0,
-				index: 0
-			}
+				index: 0,
+			},
 		]
 
 		if (start != -1 && goal != -1) {
 			let found = false
 			while (!found && paths.length != 0) {
 				let curPath = getMinCost(paths)
-				let curNode = (curPath.path[curPath.path.length - 1])
+				let curNode = curPath.path[curPath.path.length - 1]
 				paths.forEach(({ path }) => {
-					path.forEach(cell => {
+					path.forEach((cell) => {
 						explored.push(cell)
 					})
 				})
 				paths = paths.slice(0, curPath.index).concat(paths.slice(curPath.index + 1))
 				if (curNode != goal && !visited.includes(curNode)) {
-
 					let up = curNode - numCols
 					let down = curNode + numCols
 					let left = curNode - 1
@@ -226,7 +201,6 @@ export default function Home() {
 
 							//(h(n) = g(n)
 							paths.push({ path: temp, cost: temp.length })
-
 						}
 					}
 
@@ -242,30 +216,22 @@ export default function Home() {
 					}
 
 					visited.push(curNode)
-
-				}
-
-				else if (visited.includes(curNode) && curNode != goal) {
+				} else if (visited.includes(curNode) && curNode != goal) {
 					continue
-				}
-				else {
+				} else {
 					found = true
 					setPath(curPath.path)
 					setCost(curPath.cost)
 					setExploredPath(explored)
-
 				}
-
 			}
 		}
-
 	}
 
 	useEffect(() => {
 		animatePath2()
 	}, [finalCost, path, exploredPath])
 
-	
 	async function animatePath2() {
 		selectAll('.subpath').classed('subpath', false)
 		selectAll('.exploredpath').classed('exploredpath', false)
@@ -278,7 +244,6 @@ export default function Home() {
 				visited.push(cell)
 				await delay(20)
 			}
-
 		}
 		visited = []
 		for (let i = 0; i < path.length; i++) {
@@ -289,20 +254,23 @@ export default function Home() {
 
 				await delay(20)
 				visited.push(cell)
-
 			}
-
 		}
-
 	}
 
 	function randomizeGrid(e) {
 		e.preventDefault()
 		const cells = document.querySelectorAll('[data-cell]')
-		cells.forEach(cell => {
+		cells.forEach((cell) => {
 			let rand = Math.floor(Math.random() * 10)
 			cell.classList.remove('blocker')
-			if (!cell.classList.contains('start') && !cell.classList.contains('goal') && rand >= 7 || cell.getAttribute('x') == 0 || cell.getAttribute('y') == 0 || cell.getAttribute('x') == numCols - 1 || cell.getAttribute('y') == numRows - 1) {
+			if (
+				(!cell.classList.contains('start') && !cell.classList.contains('goal') && rand >= 7) ||
+                cell.getAttribute('x') == 0 ||
+                cell.getAttribute('y') == 0 ||
+                cell.getAttribute('x') == numCols - 1 ||
+                cell.getAttribute('y') == numRows - 1
+			) {
 				cell.classList.add('blocker')
 			}
 		})
@@ -314,8 +282,7 @@ export default function Home() {
 		let index = 0
 		let count = 0
 
-		paths.forEach(subPath => {
-
+		paths.forEach((subPath) => {
 			if (subPath.cost < minCost) {
 				minCost = subPath.cost
 				minPath = subPath.path
@@ -327,30 +294,26 @@ export default function Home() {
 		return {
 			path: minPath,
 			cost: minCost,
-			index: index
+			index: index,
 		}
 	}
 
 	function getDistCellID(cell1, cell2) {
 		let pos1 = {
 			x: document.getElementById(cell1).getAttribute('x'),
-			y: document.getElementById(cell1).getAttribute('y')
+			y: document.getElementById(cell1).getAttribute('y'),
 		}
 
 		let pos2 = {
 			x: document.getElementById(cell2).getAttribute('x'),
-			y: document.getElementById(cell2).getAttribute('y')
+			y: document.getElementById(cell2).getAttribute('y'),
 		}
 
 		if (hueristicMode == 0) {
-
 			return Math.sqrt(Math.pow(pos1.x - pos2.x, 2) + Math.pow(pos1.y - pos2.y, 2))
-		}
-
-		else {
+		} else {
 			return Math.abs(pos1.x - pos2.x) + Math.abs(pos1.y - pos2.y)
 		}
-
 	}
 
 	function handleCellClick(e) {
@@ -359,27 +322,17 @@ export default function Home() {
 		if (!cell.classList.contains('start') && !cell.classList.contains('goal') && start == -1) {
 			cell.classList.add('start')
 			setStart(+cell.getAttribute('id'))
-		}
-
-		else if (!cell.classList.contains('goal') && !cell.classList.contains('start') && goal == -1) {
+		} else if (!cell.classList.contains('goal') && !cell.classList.contains('start') && goal == -1) {
 			cell.classList.add('goal')
 			setGoal(+cell.getAttribute('id'))
-
-		}
-
-		else if (cell.classList.contains('blocker')) {
+		} else if (cell.classList.contains('blocker')) {
 			cell.classList.remove('blocker')
 			cell.classList.remove('subpath')
-		}
-
-		else if (!cell.classList.contains('blocker') && !cell.classList.contains('start') && !cell.classList.contains('goal')) {
+		} else if (!cell.classList.contains('blocker') && !cell.classList.contains('start') && !cell.classList.contains('goal')) {
 			cell.classList.add('blocker')
 			cell.classList.remove('subpath')
 			cell.classList.remove('exploredpath')
-
 		}
-
-
 	}
 
 	function handleCellDrag(e) {
@@ -392,25 +345,18 @@ export default function Home() {
 				cell.classList.remove('exploredpath')
 				cell.classList.add('blocker')
 				setBuildMode(true)
-			}
-			else {
+			} else {
 				cell.classList.remove('blocker')
 			}
-		}
-
-		else if (mouseDown && !buildMode) {
-			if (!cell.classList.contains('goal') &&
-				!cell.classList.contains('start') && !cell.classList.contains('blocker')) {
+		} else if (mouseDown && !buildMode) {
+			if (!cell.classList.contains('goal') && !cell.classList.contains('start') && !cell.classList.contains('blocker')) {
 				cell.classList.remove('subpath')
 				cell.classList.remove('exploredpath')
 				cell.classList.add('blocker')
-			}
-			else {
+			} else {
 				cell.classList.remove('blocker')
 			}
 		}
-
-
 	}
 
 	function generateGrid() {
@@ -420,42 +366,48 @@ export default function Home() {
 
 		let yIndex = 0
 		while (count != size) {
-
 			count % numCols == 0 ? yIndex++ : yIndex
 			let pos = {
 				x: count % numCols,
-				y: yIndex
+				y: yIndex,
 			}
-			divs.push(<div key={count} id={count} x={pos.x} y={pos.y - 1} className="cell w-[40px] h-[40px] border-[0.1px] border-gray-900 m-0 p-0" data-cell onMouseEnter={handleCellDrag} onMouseDown={handleCellClick} ></div >)
+			divs.push(
+				<div
+					key={count}
+					id={count}
+					x={pos.x}
+					y={pos.y - 1}
+					className="cell w-[40px] h-[40px] border-[0.1px] border-gray-900 m-0 p-0"
+					data-cell
+					onMouseEnter={handleCellDrag}
+					onMouseDown={handleCellClick}
+				></div>
+			)
 			count += 1
-
 		}
-		return (<>
-			{divs.map(d => d)}
-		</>)
+		return <>{divs.map((d) => d)}</>
 	}
 
 	function clearGrid(e) {
 		e.preventDefault()
 		const cells = document.querySelectorAll('[data-cell]')
-		cells.forEach(cell => {
+		cells.forEach((cell) => {
 			cell.classList.remove('goal')
 			cell.classList.remove('start')
 			cell.classList.remove('blocker')
-			cell.classList.remove('subpath')			
+			cell.classList.remove('subpath')
 			cell.classList.remove('exploredpath')
 		})
 		setStart(-1)
 		setGoal(-1)
 		setPath([])
 		setExploredPath([])
-
 	}
 
 	function clearWalls(e) {
 		e.preventDefault()
 		const cells = document.querySelectorAll('[data-cell]')
-		cells.forEach(cell => {
+		cells.forEach((cell) => {
 			cell.classList.remove('blocker')
 		})
 
@@ -465,7 +417,7 @@ export default function Home() {
 	function clearPath(e) {
 		e.preventDefault()
 		const cells = document.querySelectorAll('[data-cell]')
-		cells.forEach(cell => {
+		cells.forEach((cell) => {
 			cell.classList.remove('goal')
 			cell.classList.remove('start')
 			cell.classList.remove('subpath')
@@ -475,7 +427,6 @@ export default function Home() {
 		setGoal(-1)
 		setPath([])
 		setExploredPath([])
-
 	}
 
 	function toggleHueristic(e) {
@@ -490,33 +441,51 @@ export default function Home() {
 				<Head>
 					<title>A Star Algorithm</title>
 				</Head>
-				<nav id='navbar' className="flex justify-items-start items-center bg-black h-24 w-screen overflow-hidden">
-
-					<select name="Filter" id="Filter" defaultValue="aStar" required className="h-[50%] bg-black ml-3 pl-2 pr-2  text-white hover:underline" onChange={() => {
-						setFilter(document.getElementById('Filter').value)
-					}}  >
+				<nav id="navbar" className="flex justify-items-start items-center bg-black h-24 w-screen overflow-hidden">
+					<select
+						name="Filter"
+						id="Filter"
+						defaultValue="aStar"
+						required
+						className="h-[50%] bg-black ml-3 pl-2 pr-2  text-white hover:underline"
+						onChange={() => {
+							setFilter(document.getElementById('Filter').value)
+						}}
+					>
 						{/* <option value="none" disabled hidden>Select an Option</option> */}
 						<option value="aStar">A * Search</option>
 						<option value="greedy">Greedy Search</option>
 						<option value="uniform">Uniform Search</option>
 					</select>
-					<button className="h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline" onClick={filter == 'aStar' ? aStarSearch : filter == 'greedy' ? greedySearch : uniformSearch}>Search</button>
-					<button className="h-[50%] ml-3 pl-2 pr-2 text-white hover:underline" onClick={clearGrid}>Clear All</button>
-					<button className="h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline" onClick={clearWalls}>Clear Walls</button>
-					<button className="h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline" onClick={clearPath}>Clear Path</button>
-					<button className="h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline" onClick={randomizeGrid}>Randomize Grid</button>
-					<button className=" ml-3 pl-2 pr-2 text-white hover:underline" onClick={toggleHueristic}>{hueristicMode == 0 ? 'Euclidean' : 'Manhattan'}</button>
+					<button className="h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline" onClick={filter == 'aStar' ? aStarSearch : filter == 'greedy' ? greedySearch : uniformSearch}>
+                        Search
+					</button>
+					<button className="h-[50%] ml-3 pl-2 pr-2 text-white hover:underline" onClick={clearGrid}>
+                        Clear All
+					</button>
+					<button className="h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline" onClick={clearWalls}>
+                        Clear Walls
+					</button>
+					<button className="h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline" onClick={clearPath}>
+                        Clear Path
+					</button>
+					<button className="h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline" onClick={randomizeGrid}>
+                        Randomize Grid
+					</button>
+					<button className=" ml-3 pl-2 pr-2 text-white hover:underline" onClick={toggleHueristic}>
+						{hueristicMode == 0 ? 'Euclidean' : 'Manhattan'}
+					</button>
 					<h1 className="ml-3 pl-2 pr-2 text-white">Cost: {finalCost}</h1>
-
 				</nav>
-				<div className="board flex w-screen h-screen gap-0 justify-start items-start flex-wrap m-0 p-0 overflow-hidden" onMouseDown={() => setMouseDown(true)} onMouseUp={() => setMouseDown(false)} id="board">
+				<div
+					className="board flex w-screen h-screen gap-0 justify-start items-start flex-wrap m-0 p-0 overflow-hidden"
+					onMouseDown={() => setMouseDown(true)}
+					onMouseUp={() => setMouseDown(false)}
+					id="board"
+				>
 					{isLoaded ? generateGrid() : null}
-
 				</div>
-
 			</div>
-
-
 		</div>
 	)
 }
