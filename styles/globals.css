@@ -29,4 +29,7 @@
     .cell.blocker {
         background-color: #000000;
     }
+    .invisible {
+        background-color: red;
+    }
 }

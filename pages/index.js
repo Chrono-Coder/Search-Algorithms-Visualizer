@@ -22,10 +22,11 @@ export default function Home() {
 
 	useEffect(() => {
 		if (typeof document != 'undefined' && !isLoaded) {
-			setNumRows(Math.floor(window.innerHeight / 40) + 1)
-			setNumCols(Math.floor(window.innerWidth / 40))
+			setNumRows(Math.floor((window.innerHeight) / 40) + 1)
+			setNumCols(Math.floor((window.innerWidth) / 40))
 			setLoaded(true)
-		} else if (typeof document == 'undefined') {
+		}
+		else if (typeof document == 'undefined') {
 			setLoaded(false)
 		}
 	}, [isLoaded])
@@ -71,19 +72,33 @@ export default function Home() {
 					}
 					appendPaths(up)
 					appendPaths(down)
-					appendPaths(left)
-					appendPaths(right)
+					if (left > 0 && left < numCells && document.getElementById(left).getAttribute('x') != numCols - 1) {
+						appendPaths(left)
+					}
+					if (right > 0 && right < numCells && document.getElementById(right).getAttribute('x') != 0) {
+						appendPaths(right)
+					}
 					if (hueristicMode == 0) {
-						appendPaths(upRight)
-						appendPaths(downRight)
-						appendPaths(upLeft)
-						appendPaths(downLeft)
+						if (upRight > 0 && upRight < numCells && document.getElementById(upRight).getAttribute('x') != 0) {
+							appendPaths(upRight)
+						}
+						if (upLeft > 0 && upLeft < numCells && document.getElementById(upLeft).getAttribute('x') != numCols - 1) {
+							appendPaths(upLeft)
+						}
+						if (downRight > 0 && downRight < numCells && document.getElementById(downRight).getAttribute('x') != 0) {
+							appendPaths(downRight)
+						}
+						if (downLeft > 0 && downLeft < numCells && document.getElementById(downLeft).getAttribute('x') != numCols - 1) {
+							appendPaths(downLeft)
+						}
 					}
 
 					visited.push(curNode)
-				} else if (visited.includes(curNode) && curNode != goal) {
+				}
+				else if (visited.includes(curNode) && curNode != goal) {
 					continue
-				} else {
+				}
+				else {
 					found = true
 					setPath(curPath.path)
 					setCost(curPath.path.length)
@@ -138,19 +153,33 @@ export default function Home() {
 
 					appendPaths(up)
 					appendPaths(down)
-					appendPaths(left)
-					appendPaths(right)
+					if (left > 0 && left < numCells && document.getElementById(left).getAttribute('x') != numCols - 1) {
+						appendPaths(left)
+					}
+					if (right > 0 && right < numCells && document.getElementById(right).getAttribute('x') != 0) {
+						appendPaths(right)
+					}
 					if (hueristicMode == 0) {
-						appendPaths(upRight)
-						appendPaths(downRight)
-						appendPaths(upLeft)
-						appendPaths(downLeft)
+						if (upRight > 0 && upRight < numCells && document.getElementById(upRight).getAttribute('x') != 0) {
+							appendPaths(upRight)
+						}
+						if (upLeft > 0 && upLeft < numCells && document.getElementById(upLeft).getAttribute('x') != numCols - 1) {
+							appendPaths(upLeft)
+						}
+						if (downRight > 0 && downRight < numCells && document.getElementById(downRight).getAttribute('x') != 0) {
+							appendPaths(downRight)
+						}
+						if (downLeft > 0 && downLeft < numCells && document.getElementById(downLeft).getAttribute('x') != numCols - 1) {
+							appendPaths(downLeft)
+						}
 					}
 
 					visited.push(curNode)
-				} else if (visited.includes(curNode) && curNode != goal) {
+				}
+				else if (visited.includes(curNode) && curNode != goal) {
 					continue
-				} else {
+				}
+				else {
 					found = true
 					setPath(curPath.path)
 					setCost(curPath.cost)
@@ -179,6 +208,7 @@ export default function Home() {
 			while (!found && paths.length != 0) {
 				let curPath = getMinCost(paths)
 				let curNode = curPath.path[curPath.path.length - 1]
+				// console.log(paths)
 				paths.forEach(({ path }) => {
 					path.forEach((cell) => {
 						explored.push(cell)
@@ -194,35 +224,58 @@ export default function Home() {
 					let upLeft = curNode - numCols - 1
 					let downRight = curNode + numCols + 1
 					let downLeft = curNode + numCols - 1
-
+					// console.log('Current Node: ', curNode)
+					// // console.log('up:', up)
+					// // console.log('down: ', down)
+					// // console.log('left: ', left)
+					// // console.log('right: ', right)
+					// console.log('upRight: ', upRight)
+					// console.log('upLeft: ', upLeft)
+					// console.log('downRight: ', downRight)
+					// console.log('downLeft: ', downLeft)
 					const appendPaths = (ID) => {
+
 						if (ID > 0 && ID < numCells && !document.getElementById(ID).classList.contains('blocker') && !visited.includes(ID)) {
 							let temp = curPath.path.concat([ID])
 
-							//(h(n) = g(n)
+							//(h(n) = 0, f(n) = g(n)
 							paths.push({ path: temp, cost: temp.length })
 						}
 					}
-
 					appendPaths(up)
 					appendPaths(down)
-					appendPaths(left)
-					appendPaths(right)
+					if (left > 0 && left < numCells && document.getElementById(left).getAttribute('x') != numCols - 1) {
+						appendPaths(left)
+					}
+					if (right > 0 && right < numCells && document.getElementById(right).getAttribute('x') != 0) {
+						appendPaths(right)
+					}
 					if (hueristicMode == 0) {
-						appendPaths(upRight)
-						appendPaths(downRight)
-						appendPaths(upLeft)
-						appendPaths(downLeft)
+						if (upRight > 0 && upRight < numCells && document.getElementById(upRight).getAttribute('x') != 0) {
+							appendPaths(upRight)
+						} 
+						if (upLeft > 0 && upLeft < numCells && document.getElementById(upLeft).getAttribute('x') != numCols - 1) {
+							appendPaths(upLeft)
+						}
+						if (downRight > 0 && downRight < numCells && document.getElementById(downRight).getAttribute('x') != 0) {
+							appendPaths(downRight)
+						}
+						if (downLeft > 0 && downLeft < numCells && document.getElementById(downLeft).getAttribute('x') != numCols - 1) {
+							appendPaths(downLeft)
+						}
 					}
 
 					visited.push(curNode)
-				} else if (visited.includes(curNode) && curNode != goal) {
+				}
+				else if (visited.includes(curNode) && curNode != goal) {
 					continue
-				} else {
+				}
+				else {
 					found = true
 					setPath(curPath.path)
 					setCost(curPath.cost)
 					setExploredPath(explored)
+					console.log(curPath.path)
 				}
 			}
 		}
@@ -233,22 +286,31 @@ export default function Home() {
 	}, [finalCost, path, exploredPath])
 
 	async function animatePath2() {
-		selectAll('.subpath').classed('subpath', false)
-		selectAll('.exploredpath').classed('exploredpath', false)
+		selectAll('.subpath').classed('subpath', false).classed('animate-scale', false)
+		selectAll('.exploredpath').classed('exploredpath', false).classed('animate-scale', false)
 		let cell = 0
 		let visited = []
+
 		for (let i = 0; i < exploredPath.length; i++) {
+
 			cell = exploredPath[i]
 			if (!visited.includes(cell)) {
+				document.getElementById(cell).classList.add('animate-scale')
 				document.getElementById(cell).classList.add('exploredpath')
 				visited.push(cell)
 				await delay(20)
 			}
+			// setStart(prev => {
+			// 	if (prev == -1)
+			// 		i = 10000
+			// })
 		}
 		visited = []
+		selectAll('.exploredpath').classed('animate-scale', false)
 		for (let i = 0; i < path.length; i++) {
 			cell = path[i]
 			if (!visited.includes(cell)) {
+				document.getElementById(cell).classList.add('animate-scale')
 				document.getElementById(cell).classList.remove('exploredpath')
 				document.getElementById(cell).classList.add('subpath')
 
@@ -260,20 +322,31 @@ export default function Home() {
 
 	function randomizeGrid(e) {
 		e.preventDefault()
+		selectAll('.blocker').classed('animate-scale', false).classed('blocker', false)
 		const cells = document.querySelectorAll('[data-cell]')
 		cells.forEach((cell) => {
 			let rand = Math.floor(Math.random() * 10)
-			cell.classList.remove('blocker')
+			// cell.classList.remove('blocker')
 			if (
 				(!cell.classList.contains('start') && !cell.classList.contains('goal') && rand >= 7) ||
-                cell.getAttribute('x') == 0 ||
-                cell.getAttribute('y') == 0 ||
-                cell.getAttribute('x') == numCols - 1 ||
-                cell.getAttribute('y') == numRows - 1
+				cell.getAttribute('x') == 0 ||
+				cell.getAttribute('y') == 0 ||
+				cell.getAttribute('x') == numCols - 1 ||
+				cell.getAttribute('y') == numRows - 2
 			) {
+				setTimeout(() => {
+					cell.classList.add('animate-scale')
+
+				}, 100)
+				cell.classList.remove('animate-scale')
+
 				cell.classList.add('blocker')
+
 			}
 		})
+		filter == 'aStar' ? aStarSearch(e) : filter == 'greedy' ? greedySearch(e) : uniformSearch(e)
+		// selectAll('.blocker').transition().duration(100).classed('animate-scale', true)
+
 	}
 
 	function getMinCost(paths) {
@@ -311,7 +384,8 @@ export default function Home() {
 
 		if (hueristicMode == 0) {
 			return Math.sqrt(Math.pow(pos1.x - pos2.x, 2) + Math.pow(pos1.y - pos2.y, 2))
-		} else {
+		}
+		else {
 			return Math.abs(pos1.x - pos2.x) + Math.abs(pos1.y - pos2.y)
 		}
 	}
@@ -322,13 +396,22 @@ export default function Home() {
 		if (!cell.classList.contains('start') && !cell.classList.contains('goal') && start == -1) {
 			cell.classList.add('start')
 			setStart(+cell.getAttribute('id'))
-		} else if (!cell.classList.contains('goal') && !cell.classList.contains('start') && goal == -1) {
+		}
+		else if (!cell.classList.contains('goal') && !cell.classList.contains('start') && goal == -1) {
 			cell.classList.add('goal')
 			setGoal(+cell.getAttribute('id'))
-		} else if (cell.classList.contains('blocker')) {
+		}
+		else if (cell.classList.contains('blocker')) {
+			cell.classList.remove('animate-scale')
 			cell.classList.remove('blocker')
 			cell.classList.remove('subpath')
-		} else if (!cell.classList.contains('blocker') && !cell.classList.contains('start') && !cell.classList.contains('goal')) {
+		}
+		else if (!cell.classList.contains('blocker') && !cell.classList.contains('start') && !cell.classList.contains('goal')) {
+			setTimeout(() => {
+				cell.classList.add('animate-scale')
+			}, 100)
+			cell.classList.remove('animate-scale')
+
 			cell.classList.add('blocker')
 			cell.classList.remove('subpath')
 			cell.classList.remove('exploredpath')
@@ -345,15 +428,26 @@ export default function Home() {
 				cell.classList.remove('exploredpath')
 				cell.classList.add('blocker')
 				setBuildMode(true)
-			} else {
+			}
+			else {
+				// setTimeout(() => {
+				// 	cell.classList.add('animate-scale')
+				// }, 200)
+				// cell.classList.remove('animate-scale')
 				cell.classList.remove('blocker')
 			}
-		} else if (mouseDown && !buildMode) {
+		}
+		else if (mouseDown && !buildMode) {
 			if (!cell.classList.contains('goal') && !cell.classList.contains('start') && !cell.classList.contains('blocker')) {
+				setTimeout(() => {
+					cell.classList.add('animate-scale')
+				}, 100)
+				cell.classList.remove('animate-scale')
 				cell.classList.remove('subpath')
 				cell.classList.remove('exploredpath')
 				cell.classList.add('blocker')
-			} else {
+			}
+			else {
 				cell.classList.remove('blocker')
 			}
 		}
@@ -371,6 +465,7 @@ export default function Home() {
 				x: count % numCols,
 				y: yIndex,
 			}
+
 			divs.push(
 				<div
 					key={count}
@@ -381,8 +476,9 @@ export default function Home() {
 					data-cell
 					onMouseEnter={handleCellDrag}
 					onMouseDown={handleCellClick}
-				></div>
+				>{count}</div>
 			)
+
 			count += 1
 		}
 		return <>{divs.map((d) => d)}</>
@@ -441,42 +537,41 @@ export default function Home() {
 				<Head>
 					<title>A Star Algorithm</title>
 				</Head>
-				<nav id="navbar" className="flex justify-items-start items-center bg-black h-24 w-screen overflow-hidden">
+				<div id="navbar" className="z-10 right-11 top-11 p-6 fixed flex-col bg-opacity-50 rounded-lg hover:bg-opacity-90 transition-all ease-in-out flex justify-items-start items-center gap-4 bg-blue-900 w-[10%] h-auto overflow-hidden">
 					<select
 						name="Filter"
 						id="Filter"
 						defaultValue="aStar"
 						required
-						className="h-[50%] bg-black ml-3 pl-2 pr-2  text-white hover:underline"
+						className="h-[50%] bg-blue-900 ml-3 pl-2 pr-2 bg-opacity-0 text-white hover:bg-opacity-90 hover:underline"
 						onChange={() => {
 							setFilter(document.getElementById('Filter').value)
 						}}
 					>
-						{/* <option value="none" disabled hidden>Select an Option</option> */}
 						<option value="aStar">A * Search</option>
 						<option value="greedy">Greedy Search</option>
 						<option value="uniform">Uniform Search</option>
 					</select>
 					<button className="h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline" onClick={filter == 'aStar' ? aStarSearch : filter == 'greedy' ? greedySearch : uniformSearch}>
-                        Search
+						Search
 					</button>
 					<button className="h-[50%] ml-3 pl-2 pr-2 text-white hover:underline" onClick={clearGrid}>
-                        Clear All
+						Clear All
 					</button>
 					<button className="h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline" onClick={clearWalls}>
-                        Clear Walls
+						Clear Walls
 					</button>
 					<button className="h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline" onClick={clearPath}>
-                        Clear Path
+						Clear Path
 					</button>
 					<button className="h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline" onClick={randomizeGrid}>
-                        Randomize Grid
+						Randomize Grid
 					</button>
 					<button className=" ml-3 pl-2 pr-2 text-white hover:underline" onClick={toggleHueristic}>
 						{hueristicMode == 0 ? 'Euclidean' : 'Manhattan'}
 					</button>
 					<h1 className="ml-3 pl-2 pr-2 text-white">Cost: {finalCost}</h1>
-				</nav>
+				</div>
 				<div
 					className="board flex w-screen h-screen gap-0 justify-start items-start flex-wrap m-0 p-0 overflow-hidden"
 					onMouseDown={() => setMouseDown(true)}

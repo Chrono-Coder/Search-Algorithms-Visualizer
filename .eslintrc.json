@@ -36,6 +36,15 @@
 			"error",
 			"never"
 		],
+		"brace-style": [
+			"error",
+			"stroustrup",
+			{
+				"allowSingleLine": false
+			}
+		],
+		"space-before-blocks": "error",
+		"block-spacing": "error",
 		"react/react-in-jsx-scope": "off",
 		"no-unused-vars": "off"
 	}
