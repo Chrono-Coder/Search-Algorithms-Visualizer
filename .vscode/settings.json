@@ -1,7 +1,7 @@
 {
     "prettier.bracketSameLine": true,
     "prettier.arrowParens": "avoid",
-    "prettier.endOfLine": "crlf",
+    "prettier.endOfLine": "lf",
     "prettier.jsxSingleQuote": true,
     "prettier.printWidth": 160,
     "prettier.semi": false,
