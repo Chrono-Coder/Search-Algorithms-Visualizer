@@ -16,10 +16,11 @@ export default function Home() {
 	const [isLoaded, setLoaded] = useState(false)
 	const [numCols, setNumCols] = useState(0)
 	const [numRows, setNumRows] = useState(0)
-	const [filter, setFilter] = useState("aStar")
+	const [filter, setFilter] = useState('aStar')
 
 	const delay = async (ms = 1000) =>
 		new Promise(resolve => setTimeout(resolve, ms))
+
 
 	useEffect(() => {
 		if (typeof document != 'undefined' && !isLoaded) {
@@ -33,7 +34,7 @@ export default function Home() {
 	}, [isLoaded])
 
 	function greedySearch(e) {
-		if(start == -1)
+		if (start == -1)
 			return
 		let numCells = numCols * numRows
 		let visited = []
@@ -54,8 +55,8 @@ export default function Home() {
 				paths.forEach(({ path }) => {
 					path.forEach(cell => {
 						explored.push(cell)
-					});
-				});
+					})
+				})
 				paths = paths.slice(0, curPath.index).concat(paths.slice(curPath.index + 1))
 				if (curNode != goal && !visited.includes(curNode)) {
 
@@ -69,7 +70,7 @@ export default function Home() {
 					let downLeft = curNode + numCols - 1
 
 					const appendPaths = (ID) => {
-						if (ID > 0 && ID < numCells && !document.getElementById(ID).classList.contains("blocker") && !visited.includes(ID)) {
+						if (ID > 0 && ID < numCells && !document.getElementById(ID).classList.contains('blocker') && !visited.includes(ID)) {
 							paths.push({ path: curPath.path.concat([ID]), cost: getDistCellID(ID, goal) })
 
 						}
@@ -88,10 +89,10 @@ export default function Home() {
 					visited.push(curNode)
 
 				}
-
 				else if (visited.includes(curNode) && curNode != goal) {
-
+					continue
 				}
+
 				else {
 					found = true
 					setPath(curPath.path)
@@ -107,7 +108,7 @@ export default function Home() {
 	}
 
 	function aStarSearch(e) {
-		if(start == -1)
+		if (start == -1)
 			return
 		let numCells = numCols * numRows
 		let visited = []
@@ -128,8 +129,8 @@ export default function Home() {
 				paths.forEach(({ path }) => {
 					path.forEach(cell => {
 						explored.push(cell)
-					});
-				});
+					})
+				})
 				paths = paths.slice(0, curPath.index).concat(paths.slice(curPath.index + 1))
 				if (curNode != goal && !visited.includes(curNode)) {
 
@@ -143,7 +144,7 @@ export default function Home() {
 					let downLeft = curNode + numCols - 1
 
 					const appendPaths = (ID) => {
-						if (ID > 0 && ID < numCells && !document.getElementById(ID).classList.contains("blocker") && !visited.includes(ID)) {
+						if (ID > 0 && ID < numCells && !document.getElementById(ID).classList.contains('blocker') && !visited.includes(ID)) {
 							let temp = curPath.path.concat([ID])
 							//(h(n) = g(n)
 							paths.push({ path: temp, cost: getDistCellID(ID, goal) + temp.length })
@@ -167,7 +168,7 @@ export default function Home() {
 				}
 
 				else if (visited.includes(curNode) && curNode != goal) {
-
+					continue
 				}
 				else {
 					found = true
@@ -184,7 +185,7 @@ export default function Home() {
 	}
 
 	function uniformSearch(e) {
-		if(start == -1)
+		if (start == -1)
 			return
 		let numCells = numCols * numRows
 		let visited = []
@@ -205,8 +206,8 @@ export default function Home() {
 				paths.forEach(({ path }) => {
 					path.forEach(cell => {
 						explored.push(cell)
-					});
-				});
+					})
+				})
 				paths = paths.slice(0, curPath.index).concat(paths.slice(curPath.index + 1))
 				if (curNode != goal && !visited.includes(curNode)) {
 
@@ -220,7 +221,7 @@ export default function Home() {
 					let downLeft = curNode + numCols - 1
 
 					const appendPaths = (ID) => {
-						if (ID > 0 && ID < numCells && !document.getElementById(ID).classList.contains("blocker") && !visited.includes(ID)) {
+						if (ID > 0 && ID < numCells && !document.getElementById(ID).classList.contains('blocker') && !visited.includes(ID)) {
 							let temp = curPath.path.concat([ID])
 
 							//(h(n) = g(n)
@@ -245,17 +246,12 @@ export default function Home() {
 				}
 
 				else if (visited.includes(curNode) && curNode != goal) {
-
+					continue
 				}
 				else {
 					found = true
 					setPath(curPath.path)
 					setCost(curPath.cost)
-					// paths.forEach(({ path }) => {
-					// 	path.forEach(cell => {
-					// 		explored.push(cell)
-					// 	});
-					// });
 					setExploredPath(explored)
 
 				}
@@ -269,56 +265,16 @@ export default function Home() {
 		animatePath2()
 	}, [finalCost, path, exploredPath])
 
-	async function animatePath() {
-		selectAll(".subpath").classed("subpath", false)
-		selectAll(".exploredpath").classed("exploredpath", false)
-		let cell = 0
-		if (pathMode) {
-			let visited = []
-			for (let i = 0; i < path.length; i++) {
-				cell = path[i]
-				cell = exploredPath[i]
-				if (!visited.includes(cell)) {
-					document.getElementById(cell).classList.add("subpath")
-					await delay(100)
-					visited.push(cell)
-
-				}
-
-			}
-
-		}
-		else {
-			let visited = []
-			for (let i = 0; i < exploredPath.length; i++) {
-				cell = exploredPath[i]
-				if (!visited.includes(cell)) {
-					document.getElementById(cell).classList.add("exploredpath")
-					await delay(10)
-					visited.push(cell)
-				}
-
-			}
-		}
-
-	}
-
+	
 	async function animatePath2() {
-		// if (path.length != 0 && exploredPath.length != 0) {
-		selectAll(".subpath").classed("subpath", false)
-		selectAll(".exploredpath").classed("exploredpath", false)
+		selectAll('.subpath').classed('subpath', false)
+		selectAll('.exploredpath').classed('exploredpath', false)
 		let cell = 0
 		let visited = []
 		for (let i = 0; i < exploredPath.length; i++) {
 			cell = exploredPath[i]
 			if (!visited.includes(cell)) {
-				// if (path.includes(cell)) {
-				// 	document.getElementById(cell).classList.add("subpath")
-				// }
-				// else {
-				document.getElementById(cell).classList.add("exploredpath")
-				// document.getElementById(cell).classList.remove("border-[0.1px]")
-				// }
+				document.getElementById(cell).classList.add('exploredpath')
 				visited.push(cell)
 				await delay(20)
 			}
@@ -327,11 +283,9 @@ export default function Home() {
 		visited = []
 		for (let i = 0; i < path.length; i++) {
 			cell = path[i]
-			// cell = exploredPath[i]
 			if (!visited.includes(cell)) {
-				document.getElementById(cell).classList.remove("exploredpath")
-				document.getElementById(cell).classList.add("subpath")
-				// document.getElementById(cell).classList.remove("border-[0.1px]")
+				document.getElementById(cell).classList.remove('exploredpath')
+				document.getElementById(cell).classList.add('subpath')
 
 				await delay(20)
 				visited.push(cell)
@@ -339,23 +293,19 @@ export default function Home() {
 			}
 
 		}
-		// }
 
 	}
 
 	function randomizeGrid(e) {
 		e.preventDefault()
-		const cells = document.querySelectorAll("[data-cell]")
+		const cells = document.querySelectorAll('[data-cell]')
 		cells.forEach(cell => {
-			// if ()
-				
 			let rand = Math.floor(Math.random() * 10)
-			// console.log(cell.classList.contains("start"))
 			cell.classList.remove('blocker')
-			if (!cell.classList.contains("start") && !cell.classList.contains("goal") && rand >= 7 || cell.getAttribute("x") == 0 || cell.getAttribute("y") == 0 || cell.getAttribute("x") == numCols - 1 || cell.getAttribute("y") == numRows - 1) {
+			if (!cell.classList.contains('start') && !cell.classList.contains('goal') && rand >= 7 || cell.getAttribute('x') == 0 || cell.getAttribute('y') == 0 || cell.getAttribute('x') == numCols - 1 || cell.getAttribute('y') == numRows - 1) {
 				cell.classList.add('blocker')
 			}
-		});
+		})
 	}
 
 	function getMinCost(paths) {
@@ -372,7 +322,7 @@ export default function Home() {
 				index = count
 			}
 			count++
-		});
+		})
 
 		return {
 			path: minPath,
@@ -383,13 +333,13 @@ export default function Home() {
 
 	function getDistCellID(cell1, cell2) {
 		let pos1 = {
-			x: document.getElementById(cell1).getAttribute("x"),
-			y: document.getElementById(cell1).getAttribute("y")
+			x: document.getElementById(cell1).getAttribute('x'),
+			y: document.getElementById(cell1).getAttribute('y')
 		}
 
 		let pos2 = {
-			x: document.getElementById(cell2).getAttribute("x"),
-			y: document.getElementById(cell2).getAttribute("y")
+			x: document.getElementById(cell2).getAttribute('x'),
+			y: document.getElementById(cell2).getAttribute('y')
 		}
 
 		if (hueristicMode == 0) {
@@ -406,31 +356,29 @@ export default function Home() {
 	function handleCellClick(e) {
 		e.preventDefault()
 		const cell = e.target
-		if (!cell.classList.contains("start") && !cell.classList.contains("goal") && start == -1) {
-			cell.classList.add("start")
-			setStart(+cell.getAttribute("id"))
+		if (!cell.classList.contains('start') && !cell.classList.contains('goal') && start == -1) {
+			cell.classList.add('start')
+			setStart(+cell.getAttribute('id'))
 		}
 
-		else if (!cell.classList.contains("goal") && !cell.classList.contains("start") && goal == -1) {
-			cell.classList.add("goal")
-			setGoal(+cell.getAttribute("id"))
-
-		}
-
-		else if (cell.classList.contains("blocker")) {
-			cell.classList.remove("blocker")
-			cell.classList.remove("subpath")
-		}
-
-		else if (!cell.classList.contains("blocker") && !cell.classList.contains("start") && !cell.classList.contains("goal")) {
-			cell.classList.add("blocker")
-			cell.classList.remove("subpath")
-			cell.classList.remove("exploredpath")
+		else if (!cell.classList.contains('goal') && !cell.classList.contains('start') && goal == -1) {
+			cell.classList.add('goal')
+			setGoal(+cell.getAttribute('id'))
 
 		}
 
-		// cell.classList.remove("subpath")
-		// cell.classList.add("blocker")
+		else if (cell.classList.contains('blocker')) {
+			cell.classList.remove('blocker')
+			cell.classList.remove('subpath')
+		}
+
+		else if (!cell.classList.contains('blocker') && !cell.classList.contains('start') && !cell.classList.contains('goal')) {
+			cell.classList.add('blocker')
+			cell.classList.remove('subpath')
+			cell.classList.remove('exploredpath')
+
+		}
+
 
 	}
 
@@ -439,30 +387,26 @@ export default function Home() {
 		const cell = e.target
 
 		if (mouseDown && buildMode) {
-			if (!cell.classList.contains("goal") && !cell.classList.contains("start") && !cell.classList.contains("blocker")) {
-				cell.classList.remove("subpath")
-				cell.classList.remove("exploredpath")
-				cell.classList.add("blocker")
+			if (!cell.classList.contains('goal') && !cell.classList.contains('start') && !cell.classList.contains('blocker')) {
+				cell.classList.remove('subpath')
+				cell.classList.remove('exploredpath')
+				cell.classList.add('blocker')
 				setBuildMode(true)
 			}
 			else {
-				cell.classList.remove("blocker")
-				// setBuildMode(false)
+				cell.classList.remove('blocker')
 			}
-			// setMouseDown(false)
 		}
 
 		else if (mouseDown && !buildMode) {
-			if (!cell.classList.contains("goal") &&
-				!cell.classList.contains("start") && !cell.classList.contains("blocker")) {
-				cell.classList.remove("subpath")
-				cell.classList.remove("exploredpath")
-				cell.classList.add("blocker")
-				// setBuildMode(true)
+			if (!cell.classList.contains('goal') &&
+				!cell.classList.contains('start') && !cell.classList.contains('blocker')) {
+				cell.classList.remove('subpath')
+				cell.classList.remove('exploredpath')
+				cell.classList.add('blocker')
 			}
 			else {
-				cell.classList.remove("blocker")
-				// setBuildMode(false)
+				cell.classList.remove('blocker')
 			}
 		}
 
@@ -493,40 +437,34 @@ export default function Home() {
 
 	function clearGrid(e) {
 		e.preventDefault()
-		const cells = document.querySelectorAll("[data-cell]")
+		const cells = document.querySelectorAll('[data-cell]')
 		cells.forEach(cell => {
 			cell.classList.remove('goal')
 			cell.classList.remove('start')
 			cell.classList.remove('blocker')
-			cell.classList.remove('subpath')
+			cell.classList.remove('subpath')			
 			cell.classList.remove('exploredpath')
-			// selectAll(".cell").style('background-color', 'white')
 		})
 		setStart(-1)
 		setGoal(-1)
 		setPath([])
 		setExploredPath([])
-		// toggleBuildMode()
 
 	}
 
 	function clearWalls(e) {
 		e.preventDefault()
-		const cells = document.querySelectorAll("[data-cell]")
+		const cells = document.querySelectorAll('[data-cell]')
 		cells.forEach(cell => {
 			cell.classList.remove('blocker')
 		})
-		// setStart(-1)
-		// setGoal(-1)
-		// setPath([])
-		// setExploredPath([])
-		// toggleBuildMode()
-		filter == "aStar" ? aStarSearch(e) : filter == "greedy" ? greedySearch(e) : uniformSearch(e)
+
+		filter == 'aStar' ? aStarSearch(e) : filter == 'greedy' ? greedySearch(e) : uniformSearch(e)
 	}
 
 	function clearPath(e) {
 		e.preventDefault()
-		const cells = document.querySelectorAll("[data-cell]")
+		const cells = document.querySelectorAll('[data-cell]')
 		cells.forEach(cell => {
 			cell.classList.remove('goal')
 			cell.classList.remove('start')
@@ -551,9 +489,7 @@ export default function Home() {
 			<div>
 				<Head>
 					<title>A Star Algorithm</title>
-					{/* <meta name="description" /> */}
 				</Head>
-				{/* <input>Build Mode</input> */}
 				<nav id='navbar' className="flex justify-items-start items-center bg-black h-24 w-screen overflow-hidden">
 
 					<select name="Filter" id="Filter" defaultValue="aStar" required className="h-[50%] bg-black ml-3 pl-2 pr-2  text-white hover:underline" onChange={() => {
@@ -564,17 +500,12 @@ export default function Home() {
 						<option value="greedy">Greedy Search</option>
 						<option value="uniform">Uniform Search</option>
 					</select>
-					<button className="h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline" onClick={filter == "aStar" ? aStarSearch : filter == "greedy" ? greedySearch : uniformSearch}>Search</button>
+					<button className="h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline" onClick={filter == 'aStar' ? aStarSearch : filter == 'greedy' ? greedySearch : uniformSearch}>Search</button>
 					<button className="h-[50%] ml-3 pl-2 pr-2 text-white hover:underline" onClick={clearGrid}>Clear All</button>
 					<button className="h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline" onClick={clearWalls}>Clear Walls</button>
 					<button className="h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline" onClick={clearPath}>Clear Path</button>
 					<button className="h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline" onClick={randomizeGrid}>Randomize Grid</button>
-					{/* <button className="h-[50%] border border-slate-50 rounded ml-3 pl-2 pr-2 text-white hover:underline" onClick={togglePathMode}>{pathMode ? "Paths Mode" : "Explored Mode"}</button> */}
-					<button className=" ml-3 pl-2 pr-2 text-white hover:underline" onClick={toggleHueristic}>{hueristicMode == 0 ? "Euclidean" : "Manhattan"}</button>
-					{/* <div>
-						<h1 className="h-[50%] ml-3 pl-2 pr-2 text-white">Start: {start}</h1>
-						<h1 className="h-[50%] ml-3 pl-2 pr-2  text-white">Goal: {goal}</h1>
-					</div> */}
+					<button className=" ml-3 pl-2 pr-2 text-white hover:underline" onClick={toggleHueristic}>{hueristicMode == 0 ? 'Euclidean' : 'Manhattan'}</button>
 					<h1 className="ml-3 pl-2 pr-2 text-white">Cost: {finalCost}</h1>
 
 				</nav>
