@@ -288,6 +288,93 @@ export default function Home() {
 		}
 	}
 
+	function depthFirstSearch(e) {
+		if (start == -1) return
+		let numCells = numCols * numRows
+		let visited = []
+		let explored = []
+		let paths = [{
+			path: [start]
+		}
+		]
+
+		let found = false
+		while (!found && paths.length != 0) {
+			paths.forEach(({ path }) => {
+				path?.forEach(node => {
+					explored.push(node)
+				})
+			})
+			let curPath = paths.pop().path
+			let curNode = curPath[curPath.length - 1]
+			if (curNode == goal) {
+				found = true
+				setPath(curPath)
+				// console.log(curPath)
+				setCost(curPath.length)
+				setExploredPath(explored)
+			}
+			// else {//(curNode != goal && !visited.includes(curNode))
+			let up = curNode - numCols
+			let down = curNode + numCols
+			let left = curNode - 1
+			let right = curNode + 1
+			let upRight = curNode - numCols + 1
+			let upLeft = curNode - numCols - 1
+			let downRight = curNode + numCols + 1
+			let downLeft = curNode + numCols - 1
+			let canDiagRight = false
+			let canDiagLeft = false
+
+			const appendPaths = (ID, position = '') => {
+				let c = document.getElementById(ID)
+				if (ID > 0 && ID < numCells && !c.classList.contains('blocker') && !visited.includes(ID)) {
+					let temp = [...curPath]
+					temp.push(ID) //IT IS DOING A Shallow COPY
+					console.log(temp)
+
+					if (position.includes('right') && c.getAttribute('x') != 0) {
+						canDiagRight = true
+						paths.push({ path: temp })
+					}
+					else if (position.includes('left') && c.getAttribute('x') != numCols - 1) {
+						canDiagLeft = true
+						paths.push({ path: temp })
+					}
+					else if (position == '')
+						paths.push({ path: temp })
+
+				}
+			}
+
+			appendPaths(up)
+			appendPaths(right, 'right')
+			appendPaths(down)
+			appendPaths(left, 'left')
+			if (hueristicMode == 0) {
+				if (canDiagLeft) {
+					appendPaths(upLeft)
+					appendPaths(downLeft)
+				}
+				if (canDiagRight) {
+					appendPaths(upRight)
+					appendPaths(downRight)
+				}
+			}
+
+
+			visited.push(curNode)
+			// }
+			// else if (visited.includes(curNode) && curNode != goal) {
+			// 	continue
+			// }
+			// else {
+			// 	found = true
+
+			// }
+		}
+	}
+
 	useEffect(() => {
 		animatePath2()
 	}, [finalCost, path, exploredPath])
@@ -483,7 +570,7 @@ export default function Home() {
 					data-cell
 					onMouseEnter={handleCellDrag}
 					onMouseDown={handleCellClick}
-				></div>
+				>{count}</div>
 			)
 
 			count += 1
@@ -558,8 +645,10 @@ export default function Home() {
 						<option value='aStar'>A * Search</option>
 						<option value='greedy'>Greedy Search</option>
 						<option value='uniform'>Uniform Search</option>
+						<option value='dfs'>Depth First Search</option>
 					</select>
-					<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={filter == 'aStar' ? aStarSearch : filter == 'greedy' ? greedySearch : uniformSearch}>
+
+					<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={filter == 'aStar' ? aStarSearch : filter == 'greedy' ? greedySearch : filter == 'uniform' ? uniformSearch : depthFirstSearch}>
 						Search
 					</button>
 					<button className='h-[50%] ml-3 pl-2 pr-2 text-white hover:underline' onClick={clearGrid}>
