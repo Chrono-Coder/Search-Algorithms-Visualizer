@@ -570,7 +570,7 @@ export default function Home() {
 					data-cell
 					onMouseEnter={handleCellDrag}
 					onMouseDown={handleCellClick}
-				>{count}</div>
+				></div>
 			)
 
 			count += 1
