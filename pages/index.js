@@ -33,7 +33,7 @@ export default function Home() {
 	}, [isLoaded])
 
 	useEffect(() => {
-		if (isAnimating == 1 && path.length != 0)
+		if (isAnimating >= 1 && path.length != 0)
 			animatePathExplored()
 		else if (isAnimating2 == 1 && path.length != 0)
 			animateFinalPath()
@@ -384,12 +384,12 @@ export default function Home() {
 			// }
 		}
 	}
-
+	let animation = 0
+	let counter = animatingState
 	function animatePathExplored() {
-		let counter = animatingState
 		let cell = 0
+		// console.log(isAnimating)
 
-		console.log('test')
 		if (isAnimating == 1 && counter == 0) {
 			selectAll('.subpath').classed('subpath', false).classed('animate-scale', false)
 			selectAll('.exploredpath').classed('exploredpath', false).classed('animate-scale', false)
@@ -398,33 +398,105 @@ export default function Home() {
 		newExplored = [...newExplored]
 
 		const timer1 = setInterval(() => {
-			cell = newExplored[counter]
-			let element = document.getElementById(cell)
-			if (!element.classList.contains('exploredpath')) {
-				element.classList.add('animate-scale')
-				element.classList.add('exploredpath')
-			}
-			if (counter == newExplored.length - 1) {
-				setAnimatingState(0)
-				animateFinalPath()
-				clearInterval(timer1)
-			}
 			setAnimating(prev => {
-				if (prev == 0) {
+				if (prev <= 0) {
 					setAnimatingState(counter)
 					clearInterval(timer1)
-					return 0
+					if (animation == 0 || prev == 1)
+						return 0
+					else
+						return -2
 				}
-				// else if (prev == -1) {
-				// 	selectAll('.subpath').classed('subpath', false).classed('animate-scale', false)
-				// 	selectAll('.exploredpath').classed('exploredpath', false).classed('animate-scale', false)
-				// 	clearInterval(timer1)
-				// 	return prev = 0
-				// }
+
+				if (prev == 1) {
+					cell = newExplored[counter]
+					let element = document.getElementById(cell)
+
+					if (!element.classList.contains('exploredpath')) {
+						element.classList.add('animate-scale')
+						element.classList.add('exploredpath')
+
+
+					}
+					counter += 1
+
+					if (counter == newExplored.length - 1) {
+						setAnimatingState(0)
+						selectAll('.exploredpath').classed('animate-scale', false)
+						counter = 0
+						animation = 1
+						return 2
+					}
+
+
+				}
+
+				else {
+					cell = path[counter]
+					let element = document.getElementById(cell)
+
+					if (!element.classList.contains('subpath')) {
+						element.classList.remove('exploredpath')
+						element.classList.add('animate-scale')
+						element.classList.add('subpath')
+
+					}
+					counter += 1
+
+					if (counter == path.length - 1) {
+						setAnimating(0)
+						setAnimatingState(0)
+						counter = 0
+						animation = 0
+						clearInterval(timer1)
+					}
+
+				}
+
 				return prev
 			})
-			counter += 1
-		}, 20)
+
+			// if (isAnimating == 1) {
+
+			// 	cell = newExplored[counter]
+			// 	let element = document.getElementById(cell)
+
+			// 	if (!element.classList.contains('exploredpath')) {
+			// 		element.classList.add('animate-scale')
+			// 		element.classList.add('exploredpath')
+			// 	}
+
+			// 	if (counter == newExplored.length - 1) {
+			// 		setAnimatingState(0)
+			// 		setAnimating(2)
+			// 		selectAll('.exploredpath').classed('animate-scale', false)
+			// 		counter = 0
+			// 		// animateFinalPath()
+			// 		// clearInterval(timer1)
+			// 	}
+
+			// }
+			// else {
+			// 	cell = path[counter]
+			// 	let element = document.getElementById(cell)
+
+			// 	if (!element.classList.contains('subpath')) {
+			// 		element.classList.remove('exploredpath')
+			// 		element.classList.add('animate-scale')
+			// 		element.classList.add('subpath')
+			// 	}
+			// 	if (counter == path.length - 1) {
+			// 		setAnimating(0)
+			// 		setAnimatingState(0)
+			// 		animation = 0
+			// 		counter = 0
+			// 		clearInterval(timer1)
+			// 	}
+
+			// }
+
+
+		}, 30)
 
 	}
 
@@ -621,7 +693,7 @@ export default function Home() {
 					data-cell
 					onMouseEnter={handleCellDrag}
 					onMouseDown={handleCellClick}
-				>{count}</div>
+				>{ }</div>
 			)
 
 			count += 1
@@ -670,14 +742,15 @@ export default function Home() {
 		cells.forEach((cell) => {
 			cell.classList.remove('goal')
 			cell.classList.remove('start')
-			cell.classList.remove('subpath')
-			cell.classList.remove('exploredpath')
 		})
 		setStart(-1)
 		setGoal(-1)
 		setPath([])
 		setExploredPath([])
-		setAnimating(-1)
+		selectAll('.subpath').classed('subpath', false).classed('animate-scale', false)
+		selectAll('.exploredpath').classed('exploredpath', false).classed('animate-scale', false)
+		// selectAll('.blocker').classed('blocker', false).classed('animate-scale', false)
+		setAnimating(0)
 		setAnimatingState(0)
 
 	}
@@ -690,20 +763,17 @@ export default function Home() {
 
 	function beginSearch(e) {
 		e.preventDefault()
-		if (isAnimating == 0 || isAnimating == -1) {
+		console.log(isAnimating)
+
+		if (isAnimating <= 0) {
 			filter == 'aStar' ? aStarSearch(e) : filter == 'greedy' ? greedySearch() : filter == 'uniform' ? uniformSearch() : depthFirstSearch()
-			setAnimating(1)
+			isAnimating == -2 ? setAnimating(2) : setAnimating(1)
 		}
-		else if (isAnimating == 1) {
-			setAnimating(0)
+		else if (isAnimating > 0) {
+			isAnimating == 2 ?  setAnimating(-2) : setAnimating(0)
+
 		}
 
-		if (isAnimating2 == 0) {
-			setAnimating2(1)
-		}
-		if (isAnimating2 == 1) {
-			setAnimating2(0)
-		}
 	}
 
 	return (
