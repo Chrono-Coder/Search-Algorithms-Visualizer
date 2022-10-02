@@ -8,6 +8,9 @@ export default function Home() {
 	const [start, setStart] = useState(-1)
 	const [goal, setGoal] = useState(-1)
 	const [mouseDown, setMouseDown] = useState(false)
+	const [isAnimating, setAnimating] = useState(0)
+	const [isAnimating2, setAnimating2] = useState(1)
+	const [animatingState, setAnimatingState] = useState(0)
 	const [buildMode, setBuildMode] = useState(false)
 	const [path, setPath] = useState([])
 	const [exploredPath, setExploredPath] = useState([])
@@ -18,11 +21,9 @@ export default function Home() {
 	const [numRows, setNumRows] = useState(0)
 	const [filter, setFilter] = useState('aStar')
 
-	const delay = async (ms = 1000) => new Promise((resolve) => setTimeout(resolve, ms))
-
 	useEffect(() => {
 		if (typeof document != 'undefined' && !isLoaded) {
-			setNumRows(Math.floor((window.innerHeight) / 40) + 1)
+			setNumRows(Math.floor((window.innerHeight) / 40))
 			setNumCols(Math.floor((window.innerWidth) / 40))
 			setLoaded(true)
 		}
@@ -30,6 +31,15 @@ export default function Home() {
 			setLoaded(false)
 		}
 	}, [isLoaded])
+
+	useEffect(() => {
+		if (isAnimating == 1 && path.length != 0)
+			animatePathExplored()
+		else if (isAnimating2 == 1 && path.length != 0)
+			animateFinalPath()
+
+	}, [isAnimating, path, isAnimating2])
+
 
 	function greedySearch(e) {
 		if (start == -1) return
@@ -87,6 +97,7 @@ export default function Home() {
 
 						}
 					}
+
 
 					appendPaths(up)
 					appendPaths(right, 'right')
@@ -193,7 +204,6 @@ export default function Home() {
 					found = true
 					setPath(curPath.path)
 					setCost(curPath.path.length)
-
 					setExploredPath(explored)
 				}
 			}
@@ -375,43 +385,84 @@ export default function Home() {
 		}
 	}
 
-	useEffect(() => {
-		animatePath2()
-	}, [finalCost, path, exploredPath])
-
-	async function animatePath2() {
-		selectAll('.subpath').classed('subpath', false).classed('animate-scale', false)
-		selectAll('.exploredpath').classed('exploredpath', false).classed('animate-scale', false)
+	function animatePathExplored() {
+		let counter = animatingState
 		let cell = 0
-		let visited = []
 
-		for (let i = 0; i < exploredPath.length; i++) {
-
-			cell = exploredPath[i]
-			if (!visited.includes(cell)) {
-				document.getElementById(cell).classList.add('animate-scale')
-				document.getElementById(cell).classList.add('exploredpath')
-				visited.push(cell)
-				await delay(20)
-			}
-			// setStart(prev => {
-			// 	if (prev == -1)
-			// 		i = 10000
-			// })
+		console.log('test')
+		if (isAnimating == 1 && counter == 0) {
+			selectAll('.subpath').classed('subpath', false).classed('animate-scale', false)
+			selectAll('.exploredpath').classed('exploredpath', false).classed('animate-scale', false)
 		}
-		visited = []
+		let newExplored = new Set(exploredPath)
+		newExplored = [...newExplored]
+
+		const timer1 = setInterval(() => {
+			cell = newExplored[counter]
+			let element = document.getElementById(cell)
+			if (!element.classList.contains('exploredpath')) {
+				element.classList.add('animate-scale')
+				element.classList.add('exploredpath')
+			}
+			if (counter == newExplored.length - 1) {
+				setAnimatingState(0)
+				animateFinalPath()
+				clearInterval(timer1)
+			}
+			setAnimating(prev => {
+				if (prev == 0) {
+					setAnimatingState(counter)
+					clearInterval(timer1)
+					return 0
+				}
+				// else if (prev == -1) {
+				// 	selectAll('.subpath').classed('subpath', false).classed('animate-scale', false)
+				// 	selectAll('.exploredpath').classed('exploredpath', false).classed('animate-scale', false)
+				// 	clearInterval(timer1)
+				// 	return prev = 0
+				// }
+				return prev
+			})
+			counter += 1
+		}, 20)
+
+	}
+
+	function animateFinalPath() {
+		let cell = 0
+		let counter = animatingState
+		if (animatingState > path.length - 1)
+			counter = 0
+		// if (isAnimating == 2 && counter == 0)
 		selectAll('.exploredpath').classed('animate-scale', false)
-		for (let i = 0; i < path.length; i++) {
-			cell = path[i]
-			if (!visited.includes(cell)) {
-				document.getElementById(cell).classList.add('animate-scale')
-				document.getElementById(cell).classList.remove('exploredpath')
-				document.getElementById(cell).classList.add('subpath')
+		const timer2 = setInterval(() => {
+			cell = path[counter]
 
-				await delay(20)
-				visited.push(cell)
+			document.getElementById(cell).classList.remove('exploredpath')
+			document.getElementById(cell).classList.add('animate-scale')
+			document.getElementById(cell).classList.add('subpath')
+			if (counter == path.length - 1) {
+				setAnimating(0)
+				setAnimating2(0)
+				setAnimatingState(0)
+				clearInterval(timer2)
 			}
-		}
+			setAnimating2(prev => {
+				if (prev == 0) {
+					setAnimatingState(counter)
+					clearInterval(timer2)
+					return 2
+				}
+				// else if (prev == -1) {
+				// 	selectAll('.subpath').classed('subpath', false).classed('animate-scale', false)
+				// 	selectAll('.exploredpath').classed('exploredpath', false).classed('animate-scale', false)
+				// 	clearInterval(timer2)
+				// 	return 0
+				// }
+				return prev
+			})
+			counter += 1
+		}, 60)
 	}
 
 	function randomizeGrid(e) {
@@ -566,11 +617,11 @@ export default function Home() {
 					id={count}
 					x={pos.x}
 					y={pos.y - 1}
-					className='cell w-[40px] h-[40px] border-[0.1px] border-gray-900 m-0 p-0'
+					className='cell w-[40px] h-[40.1px] border-[0.1px] border-gray-900 m-0 p-0'
 					data-cell
 					onMouseEnter={handleCellDrag}
 					onMouseDown={handleCellClick}
-				></div>
+				>{count}</div>
 			)
 
 			count += 1
@@ -584,28 +635,37 @@ export default function Home() {
 		cells.forEach((cell) => {
 			cell.classList.remove('goal')
 			cell.classList.remove('start')
-			cell.classList.remove('blocker')
-			cell.classList.remove('subpath')
-			cell.classList.remove('exploredpath')
+			// cell.classList.remove('blocker')
+			// cell.classList.remove('subpath')
+			// cell.classList.remove('exploredpath')
 		})
 		setStart(-1)
 		setGoal(-1)
 		setPath([])
 		setExploredPath([])
+		selectAll('.subpath').classed('subpath', false).classed('animate-scale', false)
+		selectAll('.exploredpath').classed('exploredpath', false).classed('animate-scale', false)
+		selectAll('.blocker').classed('blocker', false).classed('animate-scale', false)
+		setAnimating(0)
+		setAnimatingState(0)
 	}
 
 	function clearWalls(e) {
 		e.preventDefault()
-		const cells = document.querySelectorAll('[data-cell]')
-		cells.forEach((cell) => {
-			cell.classList.remove('blocker')
-		})
+		let blockers = selectAll('.blocker')
+		if (blockers.node()) {
+			blockers.classed('blocker', false).classed('animate-scale', false)
+			if (isAnimating != 1) {
+				filter == 'aStar' ? aStarSearch(e) : filter == 'greedy' ? greedySearch(e) : uniformSearch(e)
+				setAnimating(1)
+			}
 
-		filter == 'aStar' ? aStarSearch(e) : filter == 'greedy' ? greedySearch(e) : uniformSearch(e)
+		}
+
 	}
 
-	function clearPath(e) {
-		e.preventDefault()
+	function clearPath(e = false) {
+		e ? e.preventDefault() : e
 		const cells = document.querySelectorAll('[data-cell]')
 		cells.forEach((cell) => {
 			cell.classList.remove('goal')
@@ -617,12 +677,33 @@ export default function Home() {
 		setGoal(-1)
 		setPath([])
 		setExploredPath([])
+		setAnimating(-1)
+		setAnimatingState(0)
+
 	}
 
 	function toggleHueristic(e) {
 		e.preventDefault()
 		hueristicMode == 0 ? setHueristicMode(1) : setHueristicMode(0)
 		// aStarSearch(e)
+	}
+
+	function beginSearch(e) {
+		e.preventDefault()
+		if (isAnimating == 0 || isAnimating == -1) {
+			filter == 'aStar' ? aStarSearch(e) : filter == 'greedy' ? greedySearch() : filter == 'uniform' ? uniformSearch() : depthFirstSearch()
+			setAnimating(1)
+		}
+		else if (isAnimating == 1) {
+			setAnimating(0)
+		}
+
+		if (isAnimating2 == 0) {
+			setAnimating2(1)
+		}
+		if (isAnimating2 == 1) {
+			setAnimating2(0)
+		}
 	}
 
 	return (
@@ -648,8 +729,8 @@ export default function Home() {
 						<option value='dfs'>Depth First Search</option>
 					</select>
 
-					<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={filter == 'aStar' ? aStarSearch : filter == 'greedy' ? greedySearch : filter == 'uniform' ? uniformSearch : depthFirstSearch}>
-						Search
+					<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={beginSearch}>
+						{isAnimating == 0 || isAnimating2 == 1 ? 'Start Search' : 'Pause Search'}
 					</button>
 					<button className='h-[50%] ml-3 pl-2 pr-2 text-white hover:underline' onClick={clearGrid}>
 						Clear All
