@@ -7,6 +7,7 @@ import { selectAll, select } from 'd3'
 export default function Home() {
 	const [start, setStart] = useState(-1)
 	const [goal, setGoal] = useState(-1)
+	
 	const [mouseDown, setMouseDown] = useState(false)
 	const [isAnimating, setAnimating] = useState(0)
 	const [isAnimating2, setAnimating2] = useState(1)
@@ -23,7 +24,7 @@ export default function Home() {
 
 	useEffect(() => {
 		if (typeof document != 'undefined' && !isLoaded) {
-			setNumRows(Math.floor((window.innerHeight) / 40))
+			setNumRows(Math.floor((window.innerHeight) / 40) + 1)
 			setNumCols(Math.floor((window.innerWidth) / 40))
 			setLoaded(true)
 		}
@@ -33,12 +34,14 @@ export default function Home() {
 	}, [isLoaded])
 
 	useEffect(() => {
-		if (isAnimating >= 1 && path.length != 0)
-			animatePathExplored()
-		else if (isAnimating2 == 1 && path.length != 0)
-			animateFinalPath()
+		if (path.length != 0) {
+			if (isAnimating == 1)
+				animatePathExplored()
+			if (isAnimating == 2)
+				animatePathExplored(1)
+		}
 
-	}, [isAnimating, path, isAnimating2])
+	}, [isAnimating, path])
 
 
 	function greedySearch(e) {
@@ -292,7 +295,7 @@ export default function Home() {
 					setPath(curPath.path)
 					setCost(curPath.cost)
 					setExploredPath(explored)
-					console.log(curPath.path)
+					// console.log(curPath.path)
 				}
 			}
 		}
@@ -303,146 +306,209 @@ export default function Home() {
 		let numCells = numCols * numRows
 		let visited = []
 		let explored = []
-		let paths = [{
+		let nodeStack = [start]
+		let pathStack = [{
 			path: [start]
 		}
 		]
 
 		let found = false
-		while (!found && paths.length != 0) {
-			paths.forEach(({ path }) => {
+		while (!found && nodeStack.length != 0) {
+			pathStack.forEach(({ path }) => {
 				path?.forEach(node => {
 					explored.push(node)
 				})
 			})
-			let curPath = paths.pop().path
-			let curNode = curPath[curPath.length - 1]
-			if (curNode == goal) {
-				found = true
-				setPath(curPath)
-				// console.log(curPath)
-				setCost(curPath.length)
-				setExploredPath(explored)
-			}
-			// else {//(curNode != goal && !visited.includes(curNode))
-			let up = curNode - numCols
-			let down = curNode + numCols
-			let left = curNode - 1
-			let right = curNode + 1
-			let upRight = curNode - numCols + 1
-			let upLeft = curNode - numCols - 1
-			let downRight = curNode + numCols + 1
-			let downLeft = curNode + numCols - 1
-			let canDiagRight = false
-			let canDiagLeft = false
 
-			const appendPaths = (ID, position = '') => {
-				let c = document.getElementById(ID)
-				if (ID > 0 && ID < numCells && !c.classList.contains('blocker') && !visited.includes(ID)) {
-					let temp = [...curPath]
-					temp.push(ID) //IT IS DOING A Shallow COPY
-					console.log(temp)
+			let curPath = pathStack.pop().path
+			let curNode = nodeStack.pop()//curPath[curPath.length - 1]
+			// console.log("popped")
+			// console.log(pathStack)
+			// console.log(curNode)
+			if (!visited.includes(curNode)) {
+				visited.push(curNode)
 
-					if (position.includes('right') && c.getAttribute('x') != 0) {
-						canDiagRight = true
-						paths.push({ path: temp })
+				if (curNode == goal) {
+					found = true
+					setPath(curPath)
+					setCost(curPath.length)
+					setExploredPath(explored)
+				}
+				// else {//(curNode != goal && !visited.includes(curNode))
+				let up = curNode - numCols
+				let down = curNode + numCols
+				let left = curNode - 1
+				let right = curNode + 1
+				let upRight = curNode - numCols + 1
+				let upLeft = curNode - numCols - 1
+				let downRight = curNode + numCols + 1
+				let downLeft = curNode + numCols - 1
+				let canDiagRight = false
+				let canDiagLeft = false
+
+				const appendPaths = (ID, position = '') => {
+					let c = document.getElementById(ID)
+					if (ID > 0 && ID < numCells && !c.classList.contains('blocker')) { //&& !visited.includes(ID)
+						let temp = [...curPath]
+						temp.push(ID)
+
+						if (position.includes('right') && c.getAttribute('x') != 0) {
+							canDiagRight = true
+							pathStack.push({ path: temp })
+							nodeStack.push(ID)
+						}
+						else if (position.includes('left') && c.getAttribute('x') != numCols - 1) {
+							canDiagLeft = true
+							pathStack.push({ path: temp })
+							nodeStack.push(ID)
+
+						}
+						else if (position == '') {
+							pathStack.push({ path: temp })
+							nodeStack.push(ID)
+						}
+
+						// console.log(pathStack)
+
 					}
-					else if (position.includes('left') && c.getAttribute('x') != numCols - 1) {
-						canDiagLeft = true
-						paths.push({ path: temp })
-					}
-					else if (position == '')
-						paths.push({ path: temp })
-
 				}
+				// if (hueristicMode == 1) {
+					appendPaths(up)
+					appendPaths(right, 'right')
+					appendPaths(down)
+					appendPaths(left, 'left')
+				// }
+
+				// else {
+				// 	if (canDiagRight) {
+				// 		appendPaths(up)
+				// 		appendPaths(right, 'right')
+				// 		appendPaths(upRight)
+				// 		appendPaths(downRight)
+				// 		appendPaths(down)
+				// 		appendPaths(left, 'left')
+
+				// 		if (canDiagLeft) {
+				// 			appendPaths(upLeft)
+				// 			appendPaths(downLeft)
+				// 		}
+				// 		appendPaths(left, 'left')
+				// 	}
+
+				// }
+				// console.log("Paths")
+				// console.log(pathStack)
+				// console.log("Nodes")
+				// console.log(nodeStack)
+
+
 			}
-
-			appendPaths(up)
-			appendPaths(right, 'right')
-			appendPaths(down)
-			appendPaths(left, 'left')
-			if (hueristicMode == 0) {
-				if (canDiagLeft) {
-					appendPaths(upLeft)
-					appendPaths(downLeft)
-				}
-				if (canDiagRight) {
-					appendPaths(upRight)
-					appendPaths(downRight)
-				}
-			}
-
-
-			visited.push(curNode)
-			// }
-			// else if (visited.includes(curNode) && curNode != goal) {
-			// 	continue
-			// }
-			// else {
-			// 	found = true
-
-			// }
 		}
 	}
-	let animation = 0
+
 	let counter = animatingState
-	function animatePathExplored() {
+	function animatePathExplored(animation = 0) {
 		let cell = 0
 		// console.log(isAnimating)
+		if (isAnimating == 1 && animation == 0) {
 
-		if (isAnimating == 1 && counter == 0) {
-			selectAll('.subpath').classed('subpath', false).classed('animate-scale', false)
-			selectAll('.exploredpath').classed('exploredpath', false).classed('animate-scale', false)
-		}
-		let newExplored = new Set(exploredPath)
-		newExplored = [...newExplored]
 
-		const timer1 = setInterval(() => {
-			setAnimating(prev => {
-				if (prev <= 0) {
-					setAnimatingState(counter)
-					clearInterval(timer1)
-					if (animation == 0 || prev == 1)
+			if (isAnimating == 1 && counter == 0) {
+				selectAll('.subpath').classed('subpath', false).classed('animate-scale', false)
+				selectAll('.exploredpath').classed('exploredpath', false).classed('animate-scale', false)
+			}
+			let newExplored = new Set(exploredPath)
+			newExplored = [...newExplored]
+
+			const timer1 = setInterval(() => {
+				setAnimating(prev => {
+					if (prev <= 0) {
+						setAnimatingState(counter)
+						clearInterval(timer1)
+						// if (animation == 0 || prev == 1)
+						// 	return 0
+						// else
 						return 0
-					else
+					}
+
+					if (prev == 1) {
+						cell = newExplored[counter]
+						let element = document.getElementById(cell)
+
+						if (!element.classList.contains('exploredpath')) {
+							element.classList.add('animate-scale')
+							element.classList.add('exploredpath')
+
+						}
+						counter += 1
+
+						if (counter == newExplored.length - 1) {
+							setAnimatingState(0)
+							selectAll('.exploredpath').classed('animate-scale', false)
+							counter = 0
+							setAnimating(2)
+							animatePathExplored(1)
+							return 2
+						}
+
+					}
+
+					return prev
+				})
+
+
+			}, 40)
+		}
+		else if (isAnimating == 2 && animation == 1) {
+			const timer2 = setInterval(() => {
+				setAnimating(prev => {
+					if (prev <= 0) { //pause state
+						setAnimatingState(counter)
+						clearInterval(timer2)
 						return -2
-				}
+					}
 
-				if (prev == 1) {
-					cell = newExplored[counter]
-					let element = document.getElementById(cell)
+					if (prev == 2) {
+						cell = path[counter]
+						let element = document.getElementById(cell)
 
-					if (!element.classList.contains('exploredpath')) {
-						element.classList.add('animate-scale')
-						element.classList.add('exploredpath')
+						if (!element.classList.contains('subpath')) {
+							element.classList.remove('exploredpath')
+							element.classList.add('animate-scale')
+							element.classList.add('subpath')
+
+						}
+						counter += 1
+
+						if (counter == path.length - 1) {
+							setAnimating(0)
+							setAnimatingState(0)
+							counter = 0
+							clearInterval(timer2)
+							return 0
+						}
 
 
 					}
-					counter += 1
 
-					if (counter == newExplored.length - 1) {
-						setAnimatingState(0)
-						selectAll('.exploredpath').classed('animate-scale', false)
-						counter = 0
-						animation = 1
-						return 2
-					}
+					return prev
+				})
 
 
-				}
-
-				else {
+			}, 80)
+		}
+		/*					else {
 					cell = path[counter]
 					let element = document.getElementById(cell)
-
+	
 					if (!element.classList.contains('subpath')) {
 						element.classList.remove('exploredpath')
 						element.classList.add('animate-scale')
 						element.classList.add('subpath')
-
+	
 					}
 					counter += 1
-
+	
 					if (counter == path.length - 1) {
 						setAnimating(0)
 						setAnimatingState(0)
@@ -450,55 +516,96 @@ export default function Home() {
 						animation = 0
 						clearInterval(timer1)
 					}
+	
+				}*/
 
-				}
-
-				return prev
-			})
-
-			// if (isAnimating == 1) {
-
-			// 	cell = newExplored[counter]
-			// 	let element = document.getElementById(cell)
-
-			// 	if (!element.classList.contains('exploredpath')) {
-			// 		element.classList.add('animate-scale')
-			// 		element.classList.add('exploredpath')
-			// 	}
-
-			// 	if (counter == newExplored.length - 1) {
-			// 		setAnimatingState(0)
-			// 		setAnimating(2)
-			// 		selectAll('.exploredpath').classed('animate-scale', false)
-			// 		counter = 0
-			// 		// animateFinalPath()
-			// 		// clearInterval(timer1)
-			// 	}
-
-			// }
-			// else {
-			// 	cell = path[counter]
-			// 	let element = document.getElementById(cell)
-
-			// 	if (!element.classList.contains('subpath')) {
-			// 		element.classList.remove('exploredpath')
-			// 		element.classList.add('animate-scale')
-			// 		element.classList.add('subpath')
-			// 	}
-			// 	if (counter == path.length - 1) {
-			// 		setAnimating(0)
-			// 		setAnimatingState(0)
-			// 		animation = 0
-			// 		counter = 0
-			// 		clearInterval(timer1)
-			// 	}
-
-			// }
-
-
-		}, 30)
 
 	}
+
+	// function animatePathExplored(animation = 0) {
+	// 	let cell = 0
+	// 	if (isAnimating == 1 && animation == 0) {
+
+	// 		if (isAnimating == 1 && counter == 0) {
+	// 			selectAll('.subpath').classed('subpath', false).classed('animate-scale', false)
+	// 			selectAll('.exploredpath').classed('exploredpath', false).classed('animate-scale', false)
+	// 		}
+	// 		let newExplored = new Set(exploredPath)
+	// 		newExplored = [...newExplored]
+
+	// 		const timer1 = setInterval(() => {
+	// 			setAnimating(prev => {
+	// 				if (prev <= 0) {
+	// 					setAnimatingState(counter)
+	// 					clearInterval(timer1)
+	// 					return 0
+	// 				}
+
+	// 				if (prev == 1) {
+	// 					cell = newExplored[counter]
+	// 					let element = document.getElementById(cell)
+
+	// 					if (!element.classList.contains('exploredpath')) {
+	// 						element.classList.add('animate-scale')
+	// 						element.classList.add('exploredpath')
+
+	// 					}
+	// 					counter += 1
+
+	// 					if (counter == newExplored.length - 1) {
+	// 						setAnimatingState(0)
+	// 						selectAll('.exploredpath').classed('animate-scale', false)
+	// 						counter = 0
+	// 						setAnimating(2)
+	// 						animatePathExplored(1)
+	// 						return 2
+	// 					}
+
+	// 				}
+
+	// 				return prev
+	// 			})
+
+
+	// 		}, 30)
+	// 	}
+	// 	else if (isAnimating == 2 && animation == 1) {
+	// 		const timer2 = setInterval(() => {
+	// 			setAnimating(prev => {
+	// 				if (prev <= 0) { //pause state
+	// 					setAnimatingState(counter)
+	// 					clearInterval(timer2)
+	// 					return -2
+	// 				}
+
+	// 				if (prev == 2) {
+	// 					cell = path[counter]
+	// 					let element = document.getElementById(cell)
+
+	// 					if (!element.classList.contains('subpath')) {
+	// 						element.classList.remove('exploredpath')
+	// 						element.classList.add('animate-scale')
+	// 						element.classList.add('subpath')
+
+	// 					}
+	// 					counter += 1
+
+	// 					if (counter == path.length - 1) {
+	// 						setAnimating(0)
+	// 						setAnimatingState(0)
+	// 						counter = 0
+	// 						clearInterval(timer2)
+	// 						return 0
+	// 					}
+
+	// 				}
+
+	// 				return prev
+	// 			})
+
+	// 		}, 50)
+	// 	}
+	// }
 
 	function animateFinalPath() {
 		let cell = 0
@@ -545,11 +652,11 @@ export default function Home() {
 			let rand = Math.floor(Math.random() * 10)
 			// cell.classList.remove('blocker')
 			if (
-				(!cell.classList.contains('start') && !cell.classList.contains('goal') && rand >= 7) ||
-				cell.getAttribute('x') == 0 ||
-				cell.getAttribute('y') == 0 ||
-				cell.getAttribute('x') == numCols - 1 ||
-				cell.getAttribute('y') == numRows - 2
+				(!cell.classList.contains('start') && !cell.classList.contains('goal') && rand >= 7) //||
+				// cell.getAttribute('x') == 0 ||
+				// cell.getAttribute('y') == 0 ||
+				// cell.getAttribute('x') == numCols - 1 ||
+				// cell.getAttribute('y') == numRows - 2
 			) {
 				setTimeout(() => {
 					cell.classList.add('animate-scale')
@@ -689,7 +796,7 @@ export default function Home() {
 					id={count}
 					x={pos.x}
 					y={pos.y - 1}
-					className='cell w-[40px] h-[40.1px] border-[0.1px] border-gray-900 m-0 p-0'
+					className='cell w-[40px] h-[40px] border-[0.1px] border-gray-900 m-0 p-0'
 					data-cell
 					onMouseEnter={handleCellDrag}
 					onMouseDown={handleCellClick}
@@ -738,20 +845,19 @@ export default function Home() {
 
 	function clearPath(e = false) {
 		e ? e.preventDefault() : e
-		const cells = document.querySelectorAll('[data-cell]')
-		cells.forEach((cell) => {
-			cell.classList.remove('goal')
-			cell.classList.remove('start')
-		})
-		setStart(-1)
-		setGoal(-1)
+
+		//select('.goal').classed('goal', false).classed('animate-scale', false)
+		//select('.start').classed('start', false).classed('animate-scale', false)
+
+		// setStart(-1)
+		// setGoal(-1)
 		setPath([])
+		setAnimating(0)
+		setAnimatingState(0)
 		setExploredPath([])
 		selectAll('.subpath').classed('subpath', false).classed('animate-scale', false)
 		selectAll('.exploredpath').classed('exploredpath', false).classed('animate-scale', false)
 		// selectAll('.blocker').classed('blocker', false).classed('animate-scale', false)
-		setAnimating(0)
-		setAnimatingState(0)
 
 	}
 
@@ -763,15 +869,20 @@ export default function Home() {
 
 	function beginSearch(e) {
 		e.preventDefault()
-		console.log(isAnimating)
 
-		if (isAnimating <= 0) {
+		if (isAnimating <= 0 && isAnimating > -2) {
 			filter == 'aStar' ? aStarSearch(e) : filter == 'greedy' ? greedySearch() : filter == 'uniform' ? uniformSearch() : depthFirstSearch()
-			isAnimating == -2 ? setAnimating(2) : setAnimating(1)
+			setAnimating(1)
 		}
-		else if (isAnimating > 0) {
-			isAnimating == 2 ?  setAnimating(-2) : setAnimating(0)
+		else if (isAnimating == -2) {
+			setAnimating(2)
 
+		}
+		else if (isAnimating == 1 || isAnimating == -1) {
+			setAnimating(0)
+		}
+		else if (isAnimating == 2) {
+			setAnimating(-2)
 		}
 
 	}
@@ -788,7 +899,7 @@ export default function Home() {
 						id='Filter'
 						defaultValue='aStar'
 						required
-						className='h-[50%] bg-blue-900 ml-3 pl-2 pr-2 bg-opacity-0 text-white hover:bg-opacity-90 hover:underline'
+						className='h-[50%] bg-blue-900 w-[98%] bg-opacity-0 text-white hover:bg-opacity-90 hover:underline'
 						onChange={() => {
 							setFilter(document.getElementById('Filter').value)
 						}}
