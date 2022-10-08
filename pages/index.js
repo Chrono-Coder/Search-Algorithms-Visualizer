@@ -7,10 +7,9 @@ import { selectAll, select } from 'd3'
 export default function Home() {
 	const [start, setStart] = useState(-1)
 	const [goal, setGoal] = useState(-1)
-	
+
 	const [mouseDown, setMouseDown] = useState(false)
 	const [isAnimating, setAnimating] = useState(0)
-	const [isAnimating2, setAnimating2] = useState(1)
 	const [animatingState, setAnimatingState] = useState(0)
 	const [buildMode, setBuildMode] = useState(false)
 	const [path, setPath] = useState([])
@@ -24,8 +23,8 @@ export default function Home() {
 
 	useEffect(() => {
 		if (typeof document != 'undefined' && !isLoaded) {
-			setNumRows(Math.floor((window.innerHeight) / 40) + 1)
-			setNumCols(Math.floor((window.innerWidth) / 40))
+			setNumRows(Math.floor((window.innerHeight) / 30) + 1)
+			setNumCols(Math.floor((window.innerWidth) / 30))
 			setLoaded(true)
 		}
 		else if (typeof document == 'undefined') {
@@ -35,6 +34,7 @@ export default function Home() {
 
 	useEffect(() => {
 		if (path.length != 0) {
+			// console.log(isAnimating)
 			if (isAnimating == 1)
 				animatePathExplored()
 			if (isAnimating == 2)
@@ -106,14 +106,17 @@ export default function Home() {
 					appendPaths(right, 'right')
 					appendPaths(down)
 					appendPaths(left, 'left')
-					if (canDiagLeft) {
-						appendPaths(upLeft)
-						appendPaths(downLeft)
+					if (hueristicMode == 0) {
+						if (canDiagLeft) {
+							appendPaths(upLeft)
+							appendPaths(downLeft)
+						}
+						if (canDiagRight) {
+							appendPaths(upRight)
+							appendPaths(downRight)
+						}
 					}
-					if (canDiagRight) {
-						appendPaths(upRight)
-						appendPaths(downRight)
-					}
+
 
 					visited.push(curNode)
 				}
@@ -123,7 +126,7 @@ export default function Home() {
 				else {
 					found = true
 					setPath(curPath.path)
-					setCost(curPath.path.length)
+					setCost(getCosts(curPath.path))
 
 					setExploredPath(explored)
 				}
@@ -173,14 +176,14 @@ export default function Home() {
 							//(h(n) = g(n)
 							if (position.includes('right') && c.getAttribute('x') != 0) {
 								canDiagRight = true
-								paths.push({ path: temp, cost: getDistCellID(ID, goal) + temp.length })
+								paths.push({ path: temp, cost: getDistCellID(ID, goal) + getCosts(temp) })
 							}
 							else if (position.includes('left') && c.getAttribute('x') != numCols - 1) {
 								canDiagLeft = true
-								paths.push({ path: temp, cost: getDistCellID(ID, goal) + temp.length })
+								paths.push({ path: temp, cost: getDistCellID(ID, goal) + getCosts(temp) })
 							}
 							else if (position == '')
-								paths.push({ path: temp, cost: getDistCellID(ID, goal) + temp.length })
+								paths.push({ path: temp, cost: getDistCellID(ID, goal) + getCosts(temp) })
 
 						}
 					}
@@ -189,13 +192,15 @@ export default function Home() {
 					appendPaths(right, 'right')
 					appendPaths(down)
 					appendPaths(left, 'left')
-					if (canDiagLeft) {
-						appendPaths(upLeft)
-						appendPaths(downLeft)
-					}
-					if (canDiagRight) {
-						appendPaths(upRight)
-						appendPaths(downRight)
+					if (hueristicMode == 0) {
+						if (canDiagLeft) {
+							appendPaths(upLeft)
+							appendPaths(downLeft)
+						}
+						if (canDiagRight) {
+							appendPaths(upRight)
+							appendPaths(downRight)
+						}
 					}
 
 					visited.push(curNode)
@@ -206,11 +211,20 @@ export default function Home() {
 				else {
 					found = true
 					setPath(curPath.path)
-					setCost(curPath.path.length)
+					setCost(getCosts(curPath.path))
 					setExploredPath(explored)
 				}
 			}
 		}
+	}
+
+	function getCosts(array) {
+		let sum = 0
+		array.forEach(i => {
+			sum += +document.getElementById(i).getAttribute('cost')
+		})
+
+		return sum
 	}
 
 	function uniformSearch(e) {
@@ -231,7 +245,6 @@ export default function Home() {
 			while (!found && paths.length != 0) {
 				let curPath = getMinCost(paths)
 				let curNode = curPath.path[curPath.path.length - 1]
-				// console.log(paths)
 				paths.forEach(({ path }) => {
 					path.forEach((cell) => {
 						explored.push(cell)
@@ -257,16 +270,16 @@ export default function Home() {
 							//(h(n) = g(n)
 							if (position.includes('right') && c.getAttribute('x') != 0) {
 								canDiagRight = true
-								paths.push({ path: temp, cost: temp.length })
+								paths.push({ path: temp, cost: getCosts(temp) })
 
 							}
 							else if (position.includes('left') && c.getAttribute('x') != numCols - 1) {
 								canDiagLeft = true
-								paths.push({ path: temp, cost: temp.length })
+								paths.push({ path: temp, cost: getCosts(temp) })
 
 							}
 							else if (position == '')
-								paths.push({ path: temp, cost: temp.length })
+								paths.push({ path: temp, cost: getCosts(temp) })
 
 
 						}
@@ -276,14 +289,17 @@ export default function Home() {
 					appendPaths(right, 'right')
 					appendPaths(down)
 					appendPaths(left, 'left')
-					if (canDiagLeft) {
-						appendPaths(upLeft)
-						appendPaths(downLeft)
+					if (hueristicMode == 0) {
+						if (canDiagLeft) {
+							appendPaths(upLeft)
+							appendPaths(downLeft)
+						}
+						if (canDiagRight) {
+							appendPaths(upRight)
+							appendPaths(downRight)
+						}
 					}
-					if (canDiagRight) {
-						appendPaths(upRight)
-						appendPaths(downRight)
-					}
+
 
 					visited.push(curNode)
 				}
@@ -293,9 +309,8 @@ export default function Home() {
 				else {
 					found = true
 					setPath(curPath.path)
-					setCost(curPath.cost)
+					setCost(getCosts(curPath.path))
 					setExploredPath(explored)
-					// console.log(curPath.path)
 				}
 			}
 		}
@@ -321,10 +336,8 @@ export default function Home() {
 			})
 
 			let curPath = pathStack.pop().path
-			let curNode = nodeStack.pop()//curPath[curPath.length - 1]
-			// console.log("popped")
-			// console.log(pathStack)
-			// console.log(curNode)
+			let curNode = nodeStack.pop()
+
 			if (!visited.includes(curNode)) {
 				visited.push(curNode)
 
@@ -334,7 +347,6 @@ export default function Home() {
 					setCost(curPath.length)
 					setExploredPath(explored)
 				}
-				// else {//(curNode != goal && !visited.includes(curNode))
 				let up = curNode - numCols
 				let down = curNode + numCols
 				let left = curNode - 1
@@ -368,40 +380,12 @@ export default function Home() {
 							nodeStack.push(ID)
 						}
 
-						// console.log(pathStack)
-
 					}
 				}
-				// if (hueristicMode == 1) {
-					appendPaths(up)
-					appendPaths(right, 'right')
-					appendPaths(down)
-					appendPaths(left, 'left')
-				// }
-
-				// else {
-				// 	if (canDiagRight) {
-				// 		appendPaths(up)
-				// 		appendPaths(right, 'right')
-				// 		appendPaths(upRight)
-				// 		appendPaths(downRight)
-				// 		appendPaths(down)
-				// 		appendPaths(left, 'left')
-
-				// 		if (canDiagLeft) {
-				// 			appendPaths(upLeft)
-				// 			appendPaths(downLeft)
-				// 		}
-				// 		appendPaths(left, 'left')
-				// 	}
-
-				// }
-				// console.log("Paths")
-				// console.log(pathStack)
-				// console.log("Nodes")
-				// console.log(nodeStack)
-
-
+				appendPaths(up)
+				appendPaths(right, 'right')
+				appendPaths(down)
+				appendPaths(left, 'left')
 			}
 		}
 	}
@@ -409,9 +393,7 @@ export default function Home() {
 	let counter = animatingState
 	function animatePathExplored(animation = 0) {
 		let cell = 0
-		// console.log(isAnimating)
 		if (isAnimating == 1 && animation == 0) {
-
 
 			if (isAnimating == 1 && counter == 0) {
 				selectAll('.subpath').classed('subpath', false).classed('animate-scale', false)
@@ -419,15 +401,14 @@ export default function Home() {
 			}
 			let newExplored = new Set(exploredPath)
 			newExplored = [...newExplored]
-
+			console.log(newExplored)
 			const timer1 = setInterval(() => {
+
 				setAnimating(prev => {
 					if (prev <= 0) {
-						setAnimatingState(counter)
+						if (prev != -1)
+							setAnimatingState(counter)
 						clearInterval(timer1)
-						// if (animation == 0 || prev == 1)
-						// 	return 0
-						// else
 						return 0
 					}
 
@@ -457,7 +438,7 @@ export default function Home() {
 				})
 
 
-			}, 40)
+			}, 10)
 		}
 		else if (isAnimating == 2 && animation == 1) {
 			const timer2 = setInterval(() => {
@@ -497,166 +478,20 @@ export default function Home() {
 
 			}, 80)
 		}
-		/*					else {
-					cell = path[counter]
-					let element = document.getElementById(cell)
-	
-					if (!element.classList.contains('subpath')) {
-						element.classList.remove('exploredpath')
-						element.classList.add('animate-scale')
-						element.classList.add('subpath')
-	
-					}
-					counter += 1
-	
-					if (counter == path.length - 1) {
-						setAnimating(0)
-						setAnimatingState(0)
-						counter = 0
-						animation = 0
-						clearInterval(timer1)
-					}
-	
-				}*/
 
-
-	}
-
-	// function animatePathExplored(animation = 0) {
-	// 	let cell = 0
-	// 	if (isAnimating == 1 && animation == 0) {
-
-	// 		if (isAnimating == 1 && counter == 0) {
-	// 			selectAll('.subpath').classed('subpath', false).classed('animate-scale', false)
-	// 			selectAll('.exploredpath').classed('exploredpath', false).classed('animate-scale', false)
-	// 		}
-	// 		let newExplored = new Set(exploredPath)
-	// 		newExplored = [...newExplored]
-
-	// 		const timer1 = setInterval(() => {
-	// 			setAnimating(prev => {
-	// 				if (prev <= 0) {
-	// 					setAnimatingState(counter)
-	// 					clearInterval(timer1)
-	// 					return 0
-	// 				}
-
-	// 				if (prev == 1) {
-	// 					cell = newExplored[counter]
-	// 					let element = document.getElementById(cell)
-
-	// 					if (!element.classList.contains('exploredpath')) {
-	// 						element.classList.add('animate-scale')
-	// 						element.classList.add('exploredpath')
-
-	// 					}
-	// 					counter += 1
-
-	// 					if (counter == newExplored.length - 1) {
-	// 						setAnimatingState(0)
-	// 						selectAll('.exploredpath').classed('animate-scale', false)
-	// 						counter = 0
-	// 						setAnimating(2)
-	// 						animatePathExplored(1)
-	// 						return 2
-	// 					}
-
-	// 				}
-
-	// 				return prev
-	// 			})
-
-
-	// 		}, 30)
-	// 	}
-	// 	else if (isAnimating == 2 && animation == 1) {
-	// 		const timer2 = setInterval(() => {
-	// 			setAnimating(prev => {
-	// 				if (prev <= 0) { //pause state
-	// 					setAnimatingState(counter)
-	// 					clearInterval(timer2)
-	// 					return -2
-	// 				}
-
-	// 				if (prev == 2) {
-	// 					cell = path[counter]
-	// 					let element = document.getElementById(cell)
-
-	// 					if (!element.classList.contains('subpath')) {
-	// 						element.classList.remove('exploredpath')
-	// 						element.classList.add('animate-scale')
-	// 						element.classList.add('subpath')
-
-	// 					}
-	// 					counter += 1
-
-	// 					if (counter == path.length - 1) {
-	// 						setAnimating(0)
-	// 						setAnimatingState(0)
-	// 						counter = 0
-	// 						clearInterval(timer2)
-	// 						return 0
-	// 					}
-
-	// 				}
-
-	// 				return prev
-	// 			})
-
-	// 		}, 50)
-	// 	}
-	// }
-
-	function animateFinalPath() {
-		let cell = 0
-		let counter = animatingState
-		if (animatingState > path.length - 1)
-			counter = 0
-		// if (isAnimating == 2 && counter == 0)
-		selectAll('.exploredpath').classed('animate-scale', false)
-		const timer2 = setInterval(() => {
-			cell = path[counter]
-
-			document.getElementById(cell).classList.remove('exploredpath')
-			document.getElementById(cell).classList.add('animate-scale')
-			document.getElementById(cell).classList.add('subpath')
-			if (counter == path.length - 1) {
-				setAnimating(0)
-				setAnimating2(0)
-				setAnimatingState(0)
-				clearInterval(timer2)
-			}
-			setAnimating2(prev => {
-				if (prev == 0) {
-					setAnimatingState(counter)
-					clearInterval(timer2)
-					return 2
-				}
-				// else if (prev == -1) {
-				// 	selectAll('.subpath').classed('subpath', false).classed('animate-scale', false)
-				// 	selectAll('.exploredpath').classed('exploredpath', false).classed('animate-scale', false)
-				// 	clearInterval(timer2)
-				// 	return 0
-				// }
-				return prev
-			})
-			counter += 1
-		}, 60)
 	}
 
 	function randomizeGrid(e) {
 		e.preventDefault()
 		selectAll('.blocker').classed('animate-scale', false).classed('blocker', false)
+		selectAll('.subpath').classed('animate-scale', false).classed('subpath', false)
+		selectAll('.exploredpath').classed('animate-scale', false).classed('exploredpath', false)
 		const cells = document.querySelectorAll('[data-cell]')
 		cells.forEach((cell) => {
-			let rand = Math.floor(Math.random() * 10)
+			let rand = Math.floor(Math.random() * 100)
 			// cell.classList.remove('blocker')
 			if (
-				(!cell.classList.contains('start') && !cell.classList.contains('goal') && rand >= 7) //||
-				// cell.getAttribute('x') == 0 ||
-				// cell.getAttribute('y') == 0 ||
-				// cell.getAttribute('x') == numCols - 1 ||
-				// cell.getAttribute('y') == numRows - 2
+				(!cell.classList.contains('start') && !cell.classList.contains('goal') && rand >= 70)
 			) {
 				setTimeout(() => {
 					cell.classList.add('animate-scale')
@@ -668,7 +503,57 @@ export default function Home() {
 
 			}
 		})
-		filter == 'aStar' ? aStarSearch(e) : filter == 'greedy' ? greedySearch(e) : uniformSearch(e)
+		if (isAnimating == 1) {
+			setAnimating(0)
+		}
+		else {
+			clearPath()
+			setAnimating(1)
+			filter == 'aStar' ? aStarSearch(e) : filter == 'greedy' ? greedySearch(e) : uniformSearch(e)
+		}
+
+		// selectAll('.blocker').transition().duration(100).classed('animate-scale', true)
+
+	}
+
+	function randomizeCosts(e) {
+		e.preventDefault()
+		selectAll('.cell').classed('animate-scale', false).classed('subpath', false).classed('blocker', false).classed('exploredpath', false).classed('grass', false).classed('water', false).classed('hill', false)
+		const cells = document.querySelectorAll('[data-cell]')
+		cells.forEach((cell) => {
+			let cost = Math.floor(Math.random() * 20) + 1
+			if (
+				(!cell.classList.contains('start') && !cell.classList.contains('goal') && cost > 1)
+			) {
+
+				cell.setAttribute('cost', cost)
+
+				// if (cost == 2) {
+				// 	cell.classList.add('grass')
+
+				// }
+				// else if (cost == 3) {
+				// 	cell.classList.add('water')
+
+				// }
+				// else {
+				// 	cell.classList.add('hill')
+				// }
+
+			}
+		})
+		if (isAnimating == 1) {
+			setAnimating(0)
+		}
+		else {
+			if (goal != -1) {
+				clearPath()
+				setAnimating(1)
+				filter == 'aStar' ? aStarSearch(e) : filter == 'greedy' ? greedySearch(e) : uniformSearch(e)
+
+			}
+		}
+
 		// selectAll('.blocker').transition().duration(100).classed('animate-scale', true)
 
 	}
@@ -781,7 +666,6 @@ export default function Home() {
 		let size = numCols * numRows
 		let count = 0
 		let divs = []
-
 		let yIndex = 0
 		while (count != size) {
 			count % numCols == 0 ? yIndex++ : yIndex
@@ -796,7 +680,8 @@ export default function Home() {
 					id={count}
 					x={pos.x}
 					y={pos.y - 1}
-					className='cell w-[40px] h-[40px] border-[0.1px] border-gray-900 m-0 p-0'
+					cost={1}
+					className={'cell w-[30px] h-[30px] border-[0.1px] border-gray-900 m-0 p-0'}
 					data-cell
 					onMouseEnter={handleCellDrag}
 					onMouseDown={handleCellClick}
@@ -814,17 +699,13 @@ export default function Home() {
 		cells.forEach((cell) => {
 			cell.classList.remove('goal')
 			cell.classList.remove('start')
-			// cell.classList.remove('blocker')
-			// cell.classList.remove('subpath')
-			// cell.classList.remove('exploredpath')
+			cell.setAttribute('cost', 1)
 		})
 		setStart(-1)
 		setGoal(-1)
 		setPath([])
 		setExploredPath([])
-		selectAll('.subpath').classed('subpath', false).classed('animate-scale', false)
-		selectAll('.exploredpath').classed('exploredpath', false).classed('animate-scale', false)
-		selectAll('.blocker').classed('blocker', false).classed('animate-scale', false)
+		selectAll('.cell').classed('animate-scale', false).classed('subpath', false).classed('blocker', false).classed('exploredpath', false).classed('grass', false).classed('water', false).classed('hill', false)
 		setAnimating(0)
 		setAnimatingState(0)
 	}
@@ -871,7 +752,7 @@ export default function Home() {
 		e.preventDefault()
 
 		if (isAnimating <= 0 && isAnimating > -2) {
-			filter == 'aStar' ? aStarSearch(e) : filter == 'greedy' ? greedySearch() : filter == 'uniform' ? uniformSearch() : depthFirstSearch()
+			filter == 'aStar' ? aStarSearch(e) : filter == 'greedy' ? greedySearch(e) : filter == 'uniform' ? uniformSearch(e) : depthFirstSearch(e)
 			setAnimating(1)
 		}
 		else if (isAnimating == -2) {
@@ -906,12 +787,12 @@ export default function Home() {
 					>
 						<option value='aStar'>A * Search</option>
 						<option value='greedy'>Greedy Search</option>
-						<option value='uniform'>Uniform Search</option>
-						<option value='dfs'>Depth First Search</option>
+						<option value='uniform'>Breadth First Search</option>
+						{/* <option value='dfs'>Depth First Search</option> */}
 					</select>
 
 					<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={beginSearch}>
-						{isAnimating == 0 || isAnimating2 == 1 ? 'Start Search' : 'Pause Search'}
+						{isAnimating <= 0 ? 'Start Search' : 'Pause Search'}
 					</button>
 					<button className='h-[50%] ml-3 pl-2 pr-2 text-white hover:underline' onClick={clearGrid}>
 						Clear All
@@ -924,6 +805,9 @@ export default function Home() {
 					</button>
 					<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={randomizeGrid}>
 						Randomize Grid
+					</button>
+					<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={randomizeCosts}>
+						Randomize Costs
 					</button>
 					<button className=' ml-3 pl-2 pr-2 text-white hover:underline' onClick={toggleHueristic}>
 						{hueristicMode == 0 ? 'Euclidean' : 'Manhattan'}
