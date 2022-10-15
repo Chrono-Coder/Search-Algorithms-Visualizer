@@ -173,17 +173,20 @@ export default function Home() {
 						let c = document.getElementById(ID)
 						if (ID > 0 && ID < numCells && !c.classList.contains('blocker') && !visited.includes(ID)) {
 							let temp = curPath.path.concat([ID])
+							let cost = getCosts(temp) + getDistCellID(ID, goal)
+							// console.log('A * ')
+							// console.log(cost)
 							//(h(n) = g(n)
 							if (position.includes('right') && c.getAttribute('x') != 0) {
 								canDiagRight = true
-								paths.push({ path: temp, cost: getDistCellID(ID, goal) + getCosts(temp) })
+								paths.push({ path: temp, cost: cost })
 							}
 							else if (position.includes('left') && c.getAttribute('x') != numCols - 1) {
 								canDiagLeft = true
-								paths.push({ path: temp, cost: getDistCellID(ID, goal) + getCosts(temp) })
+								paths.push({ path: temp, cost: cost })
 							}
 							else if (position == '')
-								paths.push({ path: temp, cost: getDistCellID(ID, goal) + getCosts(temp) })
+								paths.push({ path: temp, cost: cost })
 
 						}
 					}
@@ -267,19 +270,22 @@ export default function Home() {
 						let c = document.getElementById(ID)
 						if (ID > 0 && ID < numCells && !c.classList.contains('blocker') && !visited.includes(ID)) {
 							let temp = curPath.path.concat([ID])
+							let cost = getCosts(temp)
+							// console.log('uniform')
+							// console.log(cost)
 							//(h(n) = g(n)
 							if (position.includes('right') && c.getAttribute('x') != 0) {
 								canDiagRight = true
-								paths.push({ path: temp, cost: getCosts(temp) })
+								paths.push({ path: temp, cost: cost })
 
 							}
 							else if (position.includes('left') && c.getAttribute('x') != numCols - 1) {
 								canDiagLeft = true
-								paths.push({ path: temp, cost: getCosts(temp) })
+								paths.push({ path: temp, cost: cost })
 
 							}
 							else if (position == '')
-								paths.push({ path: temp, cost: getCosts(temp) })
+								paths.push({ path: temp, cost: cost })
 
 
 						}
@@ -503,6 +509,8 @@ export default function Home() {
 
 			}
 		})
+		if (goal == -1)
+			return
 		if (isAnimating == 1) {
 			setAnimating(0)
 		}
@@ -518,7 +526,7 @@ export default function Home() {
 
 	function randomizeCosts(e) {
 		e.preventDefault()
-		selectAll('.cell').classed('animate-scale', false).classed('subpath', false).classed('blocker', false).classed('exploredpath', false).classed('grass', false).classed('water', false).classed('hill', false)
+		selectAll('.cell').classed('animate-scale', false).classed('subpath', false).classed('exploredpath', false).classed('grass', false).classed('water', false).classed('hill', false)
 		const cells = document.querySelectorAll('[data-cell]')
 		cells.forEach((cell) => {
 			let cost = Math.floor(Math.random() * 20) + 1
