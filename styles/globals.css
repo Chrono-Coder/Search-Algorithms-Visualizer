@@ -29,13 +29,11 @@
     .cell.blocker {
         background-color: #000000;
     }
-    /* .cell.water {
-        background-color: #3b5be6;
-    } */
-    /* .cell.hill {
-        background-color: #6b3807;
+    .hexagon {
+        width: 100px;
+        height: 100px;
+        background: transparent;
+        border: 2px solid black;
+        transform: rotate(60deg) scale(0.866, 1);
     }
-    .cell.grass {
-        background-color: #249e06;
-    } */
 }

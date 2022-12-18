@@ -5,6 +5,10 @@ import { useEffect, useState } from 'react'
 import { selectAll, select } from 'd3'
 
 export default function Home() {
+	const [width, setWidth] = useState(-1)
+	const [height, setHeight] = useState(-1)
+	const [squares, setSquares] = useState([])
+
 	const [start, setStart] = useState(-1)
 	const [goal, setGoal] = useState(-1)
 
@@ -21,12 +25,37 @@ export default function Home() {
 	const [numRows, setNumRows] = useState(0)
 	const [filter, setFilter] = useState('aStar')
 
+	// useEffect(() => {
+	// 	if (typeof document != 'undefined' && !isLoaded) {
+	// 		setNumRows(Math.floor((window.innerHeight) / 30) + 1)
+	// 		setNumCols(Math.floor((window.innerWidth) / 30))
+	// 		setLoaded(true)
+	// 	}
+	// 	else if (typeof document == 'undefined') {
+	// 		setLoaded(false)
+	// 	}
+	// }, [isLoaded])
+
 	useEffect(() => {
-		if (typeof document != 'undefined' && !isLoaded) {
-			setNumRows(Math.floor((window.innerHeight) / 30) + 1)
-			setNumCols(Math.floor((window.innerWidth) / 30))
+		if (typeof document != 'undefined') {
+			const updateSize = () => {
+				clearGrid()
+				setWidth(window.innerWidth)
+				setHeight(window.innerHeight)
+				setSquares([])
+				setNumRows(Math.floor((window.innerHeight) / 30))
+				setNumCols(Math.floor((window.innerWidth) / 30))
+				for (let i = 0; i < Math.floor(window.innerWidth * window.innerHeight / (30 * 30)); i++) {
+					setSquares((squares) => [...squares, i])
+				}
+			}
+			updateSize()
+			window.addEventListener('resize', updateSize)
 			setLoaded(true)
+			beginSearch()
+			return () => window.removeEventListener('resize', updateSize)
 		}
+
 		else if (typeof document == 'undefined') {
 			setLoaded(false)
 		}
@@ -43,10 +72,14 @@ export default function Home() {
 
 	}, [isAnimating, path])
 
+	useEffect(() => {
+		console.log(squares.length)
+		console.log(numCols * numRows)
+	}, [isLoaded])
 
 	function greedySearch(e) {
 		if (start == -1) return
-		let numCells = numCols * numRows
+		let numCells = squares.length
 		let visited = []
 		let explored = []
 		let paths = [
@@ -136,7 +169,7 @@ export default function Home() {
 
 	function aStarSearch(e) {
 		if (start == -1) return
-		let numCells = numCols * numRows
+		let numCells = squares.length
 		let visited = []
 		let explored = []
 		let paths = [
@@ -232,7 +265,7 @@ export default function Home() {
 
 	function uniformSearch(e) {
 		if (start == -1) return
-		let numCells = numCols * numRows
+		let numCells = squares.length
 		let visited = []
 		let explored = []
 		let paths = [
@@ -324,7 +357,7 @@ export default function Home() {
 
 	function depthFirstSearch(e) {
 		if (start == -1) return
-		let numCells = numCols * numRows
+		let numCells = squares.length
 		let visited = []
 		let explored = []
 		let nodeStack = [start]
@@ -671,7 +704,7 @@ export default function Home() {
 	}
 
 	function generateGrid() {
-		let size = numCols * numRows
+		let size = squares.length
 		let count = 0
 		let divs = []
 		let yIndex = 0
@@ -689,11 +722,12 @@ export default function Home() {
 					x={pos.x}
 					y={pos.y - 1}
 					cost={1}
-					className={'cell w-[30px] h-[30px] border-[0.1px] border-gray-900 m-0 p-0'}
+					className={'cell w-[30px] h-[30px] border-[0.1px] border-gray-900'}
+					// className={'hexagon cell'}
 					data-cell
 					onMouseEnter={handleCellDrag}
 					onMouseDown={handleCellClick}
-				>{ }</div>
+				></div>
 			)
 
 			count += 1
@@ -702,7 +736,7 @@ export default function Home() {
 	}
 
 	function clearGrid(e) {
-		e.preventDefault()
+		e ? e.preventDefault() : null
 		const cells = document.querySelectorAll('[data-cell]')
 		cells.forEach((cell) => {
 			cell.classList.remove('goal')
@@ -757,7 +791,7 @@ export default function Home() {
 	}
 
 	function beginSearch(e) {
-		e.preventDefault()
+		e ? e.preventDefault() : null
 
 		if (isAnimating <= 0 && isAnimating > -2) {
 			filter == 'aStar' ? aStarSearch(e) : filter == 'greedy' ? greedySearch(e) : filter == 'uniform' ? uniformSearch(e) : depthFirstSearch(e)
@@ -775,12 +809,11 @@ export default function Home() {
 		}
 
 	}
-
 	return (
-		<div className='flex w-screen h-screen overflow-hidden'>
+		<div div className='flex w-screen h-screen overflow-hidden' >
 			<div>
 				<Head>
-					<title>A Star Algorithm</title>
+					<title>Search Algorithm Visualizer</title>
 				</Head>
 				<div id='navbar' className='z-10 right-11 top-11 p-6 fixed flex-col bg-opacity-50 rounded-lg hover:bg-opacity-90 transition-all ease-in-out flex justify-items-start items-center gap-4 bg-blue-900 w-[10%] h-auto overflow-hidden'>
 					<select
@@ -795,8 +828,7 @@ export default function Home() {
 					>
 						<option value='aStar'>A * Search</option>
 						<option value='greedy'>Greedy Search</option>
-						<option value='uniform'>Breadth First Search</option>
-						{/* <option value='dfs'>Depth First Search</option> */}
+						<option value='uniform'>Uniform Search</option>
 					</select>
 
 					<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={beginSearch}>
@@ -823,7 +855,7 @@ export default function Home() {
 					<h1 className='ml-3 pl-2 pr-2 text-white'>Cost: {finalCost}</h1>
 				</div>
 				<div
-					className='board flex w-screen h-screen gap-0 justify-start items-start flex-wrap m-0 p-0 overflow-hidden'
+					className='board flex w-screen h-screen flex-wrap -mx-2'
 					onMouseDown={() => setMouseDown(true)}
 					onMouseUp={() => setMouseDown(false)}
 					id='board'

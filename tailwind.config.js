@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+// import module from 'module'
+
 module.exports = {
 	content: ['./pages/**/*.{js,ts,jsx,tsx}', './components/**/*.{js,ts,jsx,tsx}'],
 	theme: {
@@ -7,7 +9,7 @@ module.exports = {
 				'tic-tac': 'repeat(60, auto)',
 			},
 			keyframes: {
-				quickScale: {
+				quickScale: { 
 					'0%': { transform: 'scale(1)' },
 					'25%': { transform: 'scale(1.1)' },
 					'50%': { transform: 'scale(1.2)' },
