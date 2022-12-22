@@ -13,6 +13,7 @@ export default function Home() {
 	const [goal, setGoal] = useState(-1)
 
 	const [mouseDown, setMouseDown] = useState(false)
+	const [isDragging, setDrag] = useState(false)
 	const [isAnimating, setAnimating] = useState(0)
 	const [animatingState, setAnimatingState] = useState(0)
 	const [buildMode, setBuildMode] = useState(false)
@@ -24,17 +25,13 @@ export default function Home() {
 	const [numCols, setNumCols] = useState(0)
 	const [numRows, setNumRows] = useState(0)
 	const [filter, setFilter] = useState('aStar')
-
-	// useEffect(() => {
-	// 	if (typeof document != 'undefined' && !isLoaded) {
-	// 		setNumRows(Math.floor((window.innerHeight) / 30) + 1)
-	// 		setNumCols(Math.floor((window.innerWidth) / 30))
-	// 		setLoaded(true)
-	// 	}
-	// 	else if (typeof document == 'undefined') {
-	// 		setLoaded(false)
-	// 	}
-	// }, [isLoaded])
+	const [timer, setTimer] = useState(0)
+	// let algoTimer = setInterval(function () {
+	// 	setTimer(prev => {
+	// 		document.getElementById('counter').innerHTML = prev + 1
+	// 		return prev + 1
+	// 	})
+	// }, 1000)
 
 	useEffect(() => {
 		if (typeof document != 'undefined') {
@@ -63,7 +60,6 @@ export default function Home() {
 
 	useEffect(() => {
 		if (path.length != 0) {
-			// console.log(isAnimating)
 			if (isAnimating == 1)
 				animatePathExplored()
 			if (isAnimating == 2)
@@ -72,10 +68,8 @@ export default function Home() {
 
 	}, [isAnimating, path])
 
-	useEffect(() => {
-		console.log(squares.length)
-		console.log(numCols * numRows)
-	}, [isLoaded])
+	
+
 
 	function greedySearch(e) {
 		if (start == -1) return
@@ -207,8 +201,7 @@ export default function Home() {
 						if (ID > 0 && ID < numCells && !c.classList.contains('blocker') && !visited.includes(ID)) {
 							let temp = curPath.path.concat([ID])
 							let cost = getCosts(temp) + getDistCellID(ID, goal)
-							// console.log('A * ')
-							// console.log(cost)
+
 							//(h(n) = g(n)
 							if (position.includes('right') && c.getAttribute('x') != 0) {
 								canDiagRight = true
@@ -304,8 +297,7 @@ export default function Home() {
 						if (ID > 0 && ID < numCells && !c.classList.contains('blocker') && !visited.includes(ID)) {
 							let temp = curPath.path.concat([ID])
 							let cost = getCosts(temp)
-							// console.log('uniform')
-							// console.log(cost)
+
 							//(h(n) = g(n)
 							if (position.includes('right') && c.getAttribute('x') != 0) {
 								canDiagRight = true
@@ -440,7 +432,6 @@ export default function Home() {
 			}
 			let newExplored = new Set(exploredPath)
 			newExplored = [...newExplored]
-			console.log(newExplored)
 			const timer1 = setInterval(() => {
 
 				setAnimating(prev => {
@@ -672,7 +663,7 @@ export default function Home() {
 		e.preventDefault()
 		const cell = e.target
 
-		if (mouseDown && buildMode) {
+		if ((mouseDown || isDragging) && buildMode) {
 			if (!cell.classList.contains('goal') && !cell.classList.contains('start') && !cell.classList.contains('blocker')) {
 				cell.classList.remove('subpath')
 				cell.classList.remove('exploredpath')
@@ -680,14 +671,10 @@ export default function Home() {
 				setBuildMode(true)
 			}
 			else {
-				// setTimeout(() => {
-				// 	cell.classList.add('animate-scale')
-				// }, 200)
-				// cell.classList.remove('animate-scale')
 				cell.classList.remove('blocker')
 			}
 		}
-		else if (mouseDown && !buildMode) {
+		else if ((mouseDown || isDragging) && !buildMode) {
 			if (!cell.classList.contains('goal') && !cell.classList.contains('start') && !cell.classList.contains('blocker')) {
 				setTimeout(() => {
 					cell.classList.add('animate-scale')
@@ -794,7 +781,11 @@ export default function Home() {
 		e ? e.preventDefault() : null
 
 		if (isAnimating <= 0 && isAnimating > -2) {
+			let startTime = performance.now()
 			filter == 'aStar' ? aStarSearch(e) : filter == 'greedy' ? greedySearch(e) : filter == 'uniform' ? uniformSearch(e) : depthFirstSearch(e)
+			let endTime = performance.now()
+			let elapsedTime = endTime - startTime
+			setTimer(Math.floor(elapsedTime * 1000) / 1000)
 			setAnimating(1)
 		}
 		else if (isAnimating == -2) {
@@ -809,51 +800,65 @@ export default function Home() {
 		}
 
 	}
+
 	return (
 		<div div className='flex w-screen h-screen overflow-hidden' >
 			<div>
 				<Head>
 					<title>Search Algorithm Visualizer</title>
 				</Head>
-				<div id='navbar' className='z-10 right-11 top-11 p-6 fixed flex-col bg-opacity-50 rounded-lg hover:bg-opacity-90 transition-all ease-in-out flex justify-items-start items-center gap-4 bg-blue-900 w-[10%] h-auto overflow-hidden'>
-					<select
-						name='Filter'
-						id='Filter'
-						defaultValue='aStar'
-						required
-						className='h-[50%] bg-blue-900 w-[98%] bg-opacity-0 text-white hover:bg-opacity-90 hover:underline'
-						onChange={() => {
-							setFilter(document.getElementById('Filter').value)
-						}}
-					>
-						<option value='aStar'>A * Search</option>
-						<option value='greedy'>Greedy Search</option>
-						<option value='uniform'>Uniform Search</option>
-					</select>
+				<nav>
+					{/* right-[-150px] hover: */}
+					<ul id='navbar' className={`${mouseDown ? 'pointer-events-none' : 'pointer-events-auto'} shadow-sm hover:bg-opacity-90 shadow-black flex flex-col z-10 right-11 top-11 p-6 fixed bg-opacity-50 rounded-lg  transition-all ease-in-out justify-items-start items-center gap-4 bg-blue-900 w-[10%] h-auto overflow-hidden`}>
+						<li className='hover:block relative'>
+							<select
+								name='Filter'
+								id='Filter'
+								defaultValue='aStar'
+								required
+								className='h-[50%] bg-blue-900 w-[98%] bg-opacity-0 text-white hover:bg-opacity-90 focus:none hover:underline '
+								onChange={() => {
+									setFilter(document.getElementById('Filter').value)
+								}}
+							>
+								<option value='aStar'>A * Search</option>
+								<option value='greedy'>Greedy Search</option>
+								<option value='uniform'>Uniform Search</option>
+							</select>
+						</li>
+						<li className='hover:block relative'>
+							<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={beginSearch}>
+								{isAnimating <= 0 ? 'Start Search' : 'Pause Search'}
+							</button>
+						</li>
+						<button className='h-[50%] ml-3 pl-2 pr-2 text-white hover:underline' onClick={clearGrid}>
+							Clear All
+						</button>
+						<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={clearWalls}>
+							Clear Walls
+						</button>
+						<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={clearPath}>
+							Clear Path
+						</button>
+						<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={randomizeGrid}>
+							Randomize Grid
+						</button>
+						<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={randomizeCosts}>
+							Randomize Costs
+						</button>
+						<button className=' ml-3 pl-2 pr-2 text-white hover:underline' onClick={toggleHueristic}>
+							{hueristicMode == 0 ? 'Euclidean' : 'Manhattan'}
+						</button>
 
-					<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={beginSearch}>
-						{isAnimating <= 0 ? 'Start Search' : 'Pause Search'}
-					</button>
-					<button className='h-[50%] ml-3 pl-2 pr-2 text-white hover:underline' onClick={clearGrid}>
-						Clear All
-					</button>
-					<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={clearWalls}>
-						Clear Walls
-					</button>
-					<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={clearPath}>
-						Clear Path
-					</button>
-					<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={randomizeGrid}>
-						Randomize Grid
-					</button>
-					<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={randomizeCosts}>
-						Randomize Costs
-					</button>
-					<button className=' ml-3 pl-2 pr-2 text-white hover:underline' onClick={toggleHueristic}>
-						{hueristicMode == 0 ? 'Euclidean' : 'Manhattan'}
-					</button>
-					<h1 className='ml-3 pl-2 pr-2 text-white'>Cost: {finalCost}</h1>
-				</div>
+					</ul>
+				</nav>
+				<nav>
+					<div id="counter" className='shadow-sm text-white shadow-black flex flex-col pointer-events-none z-10 left-11 bottom-5 p-3 fixed bg-opacity-80 rounded-lg transition-all ease-in-out gap-2 bg-blue-900 w-auto h-auto '>
+						<h1 className='self-start text-white'>Time: {timer}</h1>
+						<h1 className='self-start  text-white'>Cost: {finalCost}</h1>
+					</div>
+
+				</nav>
 				<div
 					className='board flex w-screen h-screen flex-wrap -mx-2'
 					onMouseDown={() => setMouseDown(true)}
@@ -862,6 +867,7 @@ export default function Home() {
 				>
 					{isLoaded ? generateGrid() : null}
 				</div>
+
 			</div>
 		</div>
 	)
