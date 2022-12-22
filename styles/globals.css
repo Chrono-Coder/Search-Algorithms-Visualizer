@@ -9,6 +9,7 @@
 
     .cell {
         cursor: pointer;
+        background-color: white;
     }
     .cell.start {
         background-color: rgb(65, 236, 65);

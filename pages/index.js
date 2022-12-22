@@ -26,12 +26,7 @@ export default function Home() {
 	const [numRows, setNumRows] = useState(0)
 	const [filter, setFilter] = useState('aStar')
 	const [timer, setTimer] = useState(0)
-	// let algoTimer = setInterval(function () {
-	// 	setTimer(prev => {
-	// 		document.getElementById('counter').innerHTML = prev + 1
-	// 		return prev + 1
-	// 	})
-	// }, 1000)
+
 
 	useEffect(() => {
 		if (typeof document != 'undefined') {
@@ -68,8 +63,129 @@ export default function Home() {
 
 	}, [isAnimating, path])
 
-	
 
+	function genBasicMaze() {
+		selectAll('.subpath').classed('animate-scale', false).classed('subpath', false)
+		selectAll('.exploredpath').classed('animate-scale', false).classed('exploredpath', false)
+		selectAll('.cell').classed('animate-scale', false).classed('blocker', true)
+		let numCells = squares.length
+		let init = Math.floor(numCells * Math.random())
+		let startCell = document.getElementById(init)
+		startCell.classList.remove('blocker')
+		startCell.classList.add('animate-scale')
+
+		let visited = [init]
+		let path = [init]
+		let x = []
+		console.log("start: " + init)
+
+		// select(`#${init}`).classed('animate-scale', true).classed('blocker', false)
+		let counter = 0
+		let t = setInterval(() => {
+			if (visited.length !== numCells) {
+
+				let index = path.length - 1//Math.floor(Math.random() * visited.length)
+				let curNode = path[index]
+				// visited.pop()
+
+				let up = curNode - numCols
+				let down = curNode + numCols
+				let left = curNode - 1
+				let right = curNode + 1
+				let upRight = curNode - numCols + 1
+				let upLeft = curNode - numCols - 1
+				let downRight = curNode + numCols + 1
+				let downLeft = curNode + numCols - 1
+				let canDiagRight = false
+				let canDiagLeft = false
+
+				let neighbors = []
+				const getNeighbor1 = (ID, position = '') => {
+					let c = document.getElementById(ID)
+					if (ID >= 0 && ID < numCells && c.classList.contains('blocker') && !visited.includes(ID)) { //&& !visited.includes(ID)
+
+						if (position.includes('right') && c.getAttribute('x') != 0) {
+							canDiagRight = true
+							neighbors.push(ID)
+						}
+						else if (position.includes('left') && c.getAttribute('x') != numCols - 1) {
+							canDiagLeft = true
+							neighbors.push(ID)
+
+						}
+						else if (position == '') {
+							neighbors.push(ID)
+
+						}
+
+					}
+				}
+
+				const getNeighbor2 = (ID, position = '') => {
+					neighbors = []
+					let c = document.getElementById(ID)
+					if (ID >= 0 && ID < numCells && c.classList.contains('blocker')) { //&& !visited.includes(ID)
+
+						if (position.includes('right') && c.getAttribute('x') != 0) {
+							canDiagRight = true
+							// if (visited.indexOf(ID) !== -1) {
+							// visited.splice(visited.indexOf(ID),1) 
+							neighbors.push(ID)
+							// }
+						}
+						else if (position.includes('left') && c.getAttribute('x') != numCols - 1) {
+							canDiagLeft = true
+							neighbors.push(ID)
+
+						}
+						else if (position == '') {
+							neighbors.push(ID)
+
+						}
+
+					}
+				}
+				getNeighbor1(up)
+				getNeighbor1(right, 'right')
+				getNeighbor1(down)
+				getNeighbor1(left, 'left')
+
+				if (neighbors.length !== 0) {
+					let next = neighbors[Math.floor(Math.random() * neighbors.length)]
+					let nextCell = document.getElementById(next)
+					nextCell.classList.remove('blocker')
+					nextCell.classList.add('animate-scale')
+					path.push(next)
+					visited = visited.concat(neighbors)
+					x = x.concat(neighbors)
+				}
+				else {
+					// path.splice(index, 1)
+					//Random Backtracking
+					// let index = Math.floor(Math.random() * x.length)
+					// path = [x[index]]
+
+					//Recent Backtracking
+
+					index = 0
+					path = [x[index]]
+
+					x.splice(index, 1)
+
+					
+
+				}
+
+			}
+			else {
+				clearInterval(t)
+			}
+		}, 0)
+
+
+
+
+	}
 
 	function greedySearch(e) {
 		if (start == -1) return
@@ -108,7 +224,7 @@ export default function Home() {
 					let canDiagLeft = false
 					const appendPaths = (ID, position = '') => {
 						let c = document.getElementById(ID)
-						if (ID > 0 && ID < numCells && !c.classList.contains('blocker') && !visited.includes(ID)) {
+						if (ID >= 0 && ID < numCells && !c.classList.contains('blocker') && !visited.includes(ID)) {
 							let temp = curPath.path.concat([ID])
 							//(h(n) = g(n)
 							if (position.includes('right') && c.getAttribute('x') != 0) {
@@ -294,7 +410,7 @@ export default function Home() {
 					let canDiagLeft = false
 					const appendPaths = (ID, position = '') => {
 						let c = document.getElementById(ID)
-						if (ID > 0 && ID < numCells && !c.classList.contains('blocker') && !visited.includes(ID)) {
+						if (ID >= 0 && ID < numCells && !c.classList.contains('blocker') && !visited.includes(ID)) {
 							let temp = curPath.path.concat([ID])
 							let cost = getCosts(temp)
 
@@ -519,10 +635,7 @@ export default function Home() {
 		const cells = document.querySelectorAll('[data-cell]')
 		cells.forEach((cell) => {
 			let rand = Math.floor(Math.random() * 100)
-			// cell.classList.remove('blocker')
-			if (
-				(!cell.classList.contains('start') && !cell.classList.contains('goal') && rand >= 70)
-			) {
+			if ((!cell.classList.contains('start') && !cell.classList.contains('goal') && rand >= 70)) {
 				setTimeout(() => {
 					cell.classList.add('animate-scale')
 
@@ -533,7 +646,7 @@ export default function Home() {
 
 			}
 		})
-		if (goal == -1)
+		if (start !== -1 && goal !== -1)
 			return
 		if (isAnimating == 1) {
 			setAnimating(0)
@@ -544,8 +657,6 @@ export default function Home() {
 			filter == 'aStar' ? aStarSearch(e) : filter == 'greedy' ? greedySearch(e) : uniformSearch(e)
 		}
 
-		// selectAll('.blocker').transition().duration(100).classed('animate-scale', true)
-
 	}
 
 	function randomizeCosts(e) {
@@ -553,10 +664,8 @@ export default function Home() {
 		selectAll('.cell').classed('animate-scale', false).classed('subpath', false).classed('exploredpath', false).classed('grass', false).classed('water', false).classed('hill', false)
 		const cells = document.querySelectorAll('[data-cell]')
 		cells.forEach((cell) => {
-			let cost = Math.floor(Math.random() * 20) + 1
-			if (
-				(!cell.classList.contains('start') && !cell.classList.contains('goal') && cost > 1)
-			) {
+			let cost = Math.random() * 10
+			if ((!cell.classList.contains('start') && !cell.classList.contains('goal') && cost > 1)) {
 
 				cell.setAttribute('cost', cost)
 
@@ -585,8 +694,6 @@ export default function Home() {
 
 			}
 		}
-
-		// selectAll('.blocker').transition().duration(100).classed('animate-scale', true)
 
 	}
 
@@ -832,7 +939,7 @@ export default function Home() {
 							</button>
 						</li>
 						<button className='h-[50%] ml-3 pl-2 pr-2 text-white hover:underline' onClick={clearGrid}>
-							Clear All
+							Reset
 						</button>
 						<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={clearWalls}>
 							Clear Walls
@@ -840,8 +947,11 @@ export default function Home() {
 						<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={clearPath}>
 							Clear Path
 						</button>
+						<button className=' ml-3 pl-2 pr-2 text-white hover:underline' onClick={genBasicMaze}>
+							Generate Maze
+						</button>
 						<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={randomizeGrid}>
-							Randomize Grid
+							Randomize Walls
 						</button>
 						<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={randomizeCosts}>
 							Randomize Costs
@@ -853,8 +963,8 @@ export default function Home() {
 					</ul>
 				</nav>
 				<nav>
-					<div id="counter" className='shadow-sm text-white shadow-black flex flex-col pointer-events-none z-10 left-11 bottom-5 p-3 fixed bg-opacity-80 rounded-lg transition-all ease-in-out gap-2 bg-blue-900 w-auto h-auto '>
-						<h1 className='self-start text-white'>Time: {timer}</h1>
+					<div id="counter" className='shadow-sm text-white shadow-black flex flex-col pointer-events-none z-10 left-11 bottom-5 p-3 fixed bg-opacity-90 rounded-lg transition-all ease-in-out gap-2 bg-blue-900 w-auto h-auto '>
+						<h1 className='self-start text-white'>Time: {timer} ms</h1>
 						<h1 className='self-start  text-white'>Cost: {finalCost}</h1>
 					</div>
 
