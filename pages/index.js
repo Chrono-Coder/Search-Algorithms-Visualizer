@@ -84,7 +84,7 @@ export default function Home() {
 		let t = setInterval(() => {
 			if (visited.length !== numCells) {
 
-				let index = path.length - 1//Math.floor(Math.random() * visited.length)
+				let index = Math.floor(Math.random() * path.length) //path.length - 1
 				let curNode = path[index]
 				// visited.pop()
 
@@ -121,30 +121,7 @@ export default function Home() {
 					}
 				}
 
-				const getNeighbor2 = (ID, position = '') => {
-					neighbors = []
-					let c = document.getElementById(ID)
-					if (ID >= 0 && ID < numCells && c.classList.contains('blocker')) { //&& !visited.includes(ID)
 
-						if (position.includes('right') && c.getAttribute('x') != 0) {
-							canDiagRight = true
-							// if (visited.indexOf(ID) !== -1) {
-							// visited.splice(visited.indexOf(ID),1) 
-							neighbors.push(ID)
-							// }
-						}
-						else if (position.includes('left') && c.getAttribute('x') != numCols - 1) {
-							canDiagLeft = true
-							neighbors.push(ID)
-
-						}
-						else if (position == '') {
-							neighbors.push(ID)
-
-						}
-
-					}
-				}
 				getNeighbor1(up)
 				getNeighbor1(right, 'right')
 				getNeighbor1(down)
@@ -162,17 +139,15 @@ export default function Home() {
 				else {
 					// path.splice(index, 1)
 					//Random Backtracking
-					// let index = Math.floor(Math.random() * x.length)
 					// path = [x[index]]
 
 					//Recent Backtracking
 
-					index = 0
+					index = Math.floor(Math.random() * x.length)
+					// index = x.length -1
 					path = [x[index]]
 
 					x.splice(index, 1)
-
-					
 
 				}
 
@@ -181,10 +156,93 @@ export default function Home() {
 				clearInterval(t)
 			}
 		}, 0)
+	}
+
+	function genBasicMaze2() {
+		selectAll('.subpath').classed('animate-scale', false).classed('subpath', false)
+		selectAll('.exploredpath').classed('animate-scale', false).classed('exploredpath', false)
+		selectAll('.cell').classed('animate-scale', false).classed('blocker', true)
+		let numCells = squares.length
+		let init = 0
+		let startCell = document.getElementById(init)
+		startCell.classList.remove('blocker')
+		startCell.classList.add('animate-scale')
+
+		let visited = new Set()
+		visited.add(init)
+		let path = [init]
+
+		let t = setInterval(() => {
+			if (visited.size !== numCells) {
+
+				let curNode = path.pop()
+				let nextCell = document.getElementById(curNode)
+				nextCell.classList.remove('blocker')
+				nextCell.classList.add('animate-scale')
+
+				let up = curNode - numCols
+				let down = curNode + numCols
+				let left = curNode - 1
+				let right = curNode + 1
+				let upRight = curNode - numCols + 1
+				let upLeft = curNode - numCols - 1
+				let downRight = curNode + numCols + 1
+				let downLeft = curNode + numCols - 1
+				let canDiagRight = false
+				let canDiagLeft = false
+
+				let neighbors = []
+				const getNeighbor1 = (ID, position = '') => {
+					let c = document.getElementById(ID)
+					if (ID >= 0 && ID < numCells && c.classList.contains('blocker') && !visited.has(ID)) { //&& !visited.includes(ID)
+
+						if (position.includes('right') && c.getAttribute('x') != 0) {
+							canDiagRight = true
+							neighbors.push(ID)
+						}
+						else if (position.includes('left') && c.getAttribute('x') != numCols - 1) {
+							canDiagLeft = true
+							neighbors.push(ID)
+
+						}
+						else if (position == '') {
+							neighbors.push(ID)
+
+						}
+
+					}
+				}
 
 
+				getNeighbor1(up)
+				getNeighbor1(right, 'right')
+				getNeighbor1(down)
+				getNeighbor1(left, 'left')
 
+				const shuffleArray = array => {
+					for (let i = array.length - 1; i > 0; i--) {
+						const j = Math.floor(Math.random() * (i + 1))
+						const temp = array[i]
+						array[i] = array[j]
+						array[j] = temp
+					}
+				}
 
+				if (neighbors.length !== 0) {
+					shuffleArray(neighbors)
+					neighbors.forEach(i => {
+						path.push(i)
+						visited.add(i)
+
+					})
+				}
+				else {
+					nextCell.classList.add('blocker')
+
+				}
+
+			}
+		}, 0.1)
 	}
 
 	function greedySearch(e) {
@@ -947,7 +1005,7 @@ export default function Home() {
 						<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={clearPath}>
 							Clear Path
 						</button>
-						<button className=' ml-3 pl-2 pr-2 text-white hover:underline' onClick={genBasicMaze}>
+						<button className=' ml-3 pl-2 pr-2 text-white hover:underline' onClick={genBasicMaze2}>
 							Generate Maze
 						</button>
 						<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={randomizeGrid}>
