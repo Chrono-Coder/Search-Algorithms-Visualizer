@@ -1,9 +1,10 @@
 import Head from 'next/head'
-import Image from 'next/image'
-import styles from '../styles/Home.module.css'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useContext } from 'react'
 import { selectAll, select } from 'd3'
+import DropDown
+	from '../components/DropDown'
 
+import context from '../components/context'
 export default function Home() {
 	const [width, setWidth] = useState(-1)
 	const [height, setHeight] = useState(-1)
@@ -12,11 +13,11 @@ export default function Home() {
 	const [start, setStart] = useState(-1)
 	const [goal, setGoal] = useState(-1)
 
-	const [mouseDown, setMouseDown] = useState(false)
 	const [isDragging, setDrag] = useState(false)
+	const [isBusy, setBusy] = useState(false)
+	const [mouseDown, setMouseDown] = useState(false)
 	const [isAnimating, setAnimating] = useState(0)
 	const [animatingState, setAnimatingState] = useState(0)
-	const [buildMode, setBuildMode] = useState(false)
 	const [path, setPath] = useState([])
 	const [exploredPath, setExploredPath] = useState([])
 	const [finalCost, setCost] = useState(0)
@@ -24,10 +25,17 @@ export default function Home() {
 	const [isLoaded, setLoaded] = useState(false)
 	const [numCols, setNumCols] = useState(0)
 	const [numRows, setNumRows] = useState(0)
-	const [filter, setFilter] = useState('aStar')
 	const [timer, setTimer] = useState(0)
 
+	const { selected, setSelected } = useContext(context)
 
+
+	function checkSelected() {
+		if(!selected.name)
+			return aStarSearch()
+		selected.name == 'A* Search' ? aStarSearch() : selected.name == 'Greedy Search' ? greedySearch() : uniformSearch()
+
+	}
 	useEffect(() => {
 		if (typeof document != 'undefined') {
 			const updateSize = () => {
@@ -63,7 +71,19 @@ export default function Home() {
 
 	}, [isAnimating, path])
 
+	useEffect(() => {
+		if (typeof window !== "undefined") {
+			if (isBusy) {
+				document.getElementById("cover").classList.add("fixed")
+				document.getElementById("cover").classList.remove("hidden")
+			}
+			else {
+				document.getElementById("cover").classList.remove("fixed")
+				document.getElementById("cover").classList.add("hidden")
+			}
 
+		}
+	}, [isBusy])
 	function genBasicMaze() {
 		selectAll('.subpath').classed('animate-scale', false).classed('subpath', false)
 		selectAll('.exploredpath').classed('animate-scale', false).classed('exploredpath', false)
@@ -77,7 +97,7 @@ export default function Home() {
 		let visited = [init]
 		let path = [init]
 		let x = []
-		console.log("start: " + init)
+		// console.log("start: " + init)
 
 		// select(`#${init}`).classed('animate-scale', true).classed('blocker', false)
 		let counter = 0
@@ -159,11 +179,11 @@ export default function Home() {
 	}
 
 	function genBasicMaze2() {
-		selectAll('.subpath').classed('animate-scale', false).classed('subpath', false)
-		selectAll('.exploredpath').classed('animate-scale', false).classed('exploredpath', false)
+		clearGrid()
+		setBusy(true)
 		selectAll('.cell').classed('animate-scale', false).classed('blocker', true)
 		let numCells = squares.length
-		let init = 0
+		let init = Math.floor(Math.random() * numCells)
 		let startCell = document.getElementById(init)
 		startCell.classList.remove('blocker')
 		startCell.classList.add('animate-scale')
@@ -175,10 +195,10 @@ export default function Home() {
 		let t = setInterval(() => {
 			if (visited.size !== numCells) {
 
-				let curNode = path.pop()
-				let nextCell = document.getElementById(curNode)
-				nextCell.classList.remove('blocker')
-				nextCell.classList.add('animate-scale')
+				let curNode = path.pop()//path[path.length - 1]
+				let curCell = document.getElementById(curNode)
+				curCell.classList.remove('blocker')
+				curCell.classList.add('animate-scale')
 
 				let up = curNode - numCols
 				let down = curNode + numCols
@@ -235,14 +255,25 @@ export default function Home() {
 						visited.add(i)
 
 					})
+
+
 				}
 				else {
-					nextCell.classList.add('blocker')
+					if (Math.random() < 0.4) {
+						path.push(curNode)
+						visited.add(curNode)
+					}
+					else {
+						curCell.classList.add('blocker')
+					}
 
 				}
 
 			}
 		}, 0.1)
+
+		setBusy(false)
+
 	}
 
 	function greedySearch(e) {
@@ -336,7 +367,7 @@ export default function Home() {
 	}
 
 	function aStarSearch(e) {
-		if (start == -1) return
+		if (start == -1 || goal == -1) return
 		let numCells = squares.length
 		let visited = []
 		let explored = []
@@ -348,77 +379,77 @@ export default function Home() {
 			},
 		]
 
-		if (start != -1 && goal != -1) {
-			let found = false
-			while (!found && paths.length != 0) {
-				let curPath = getMinCost(paths)
-				let curNode = curPath.path[curPath.path.length - 1]
-				paths.forEach(({ path }) => {
-					path.forEach((cell) => {
-						explored.push(cell)
-					})
+
+		let found = false
+		while (!found && paths.length != 0) {
+			let curPath = getMinCost(paths)
+			let curNode = curPath.path[curPath.path.length - 1]
+			paths.forEach(({ path }) => {
+				path.forEach((cell) => {
+					explored.push(cell)
 				})
-				paths = paths.slice(0, curPath.index).concat(paths.slice(curPath.index + 1))
-				if (curNode != goal && !visited.includes(curNode)) {
-					let up = curNode - numCols
-					let down = curNode + numCols
-					let left = curNode - 1
-					let right = curNode + 1
-					let upRight = curNode - numCols + 1
-					let upLeft = curNode - numCols - 1
-					let downRight = curNode + numCols + 1
-					let downLeft = curNode + numCols - 1
-					let canDiagRight = false
-					let canDiagLeft = false
-					const appendPaths = (ID, position = '') => {
-						let c = document.getElementById(ID)
-						if (ID > 0 && ID < numCells && !c.classList.contains('blocker') && !visited.includes(ID)) {
-							let temp = curPath.path.concat([ID])
-							let cost = getCosts(temp) + getDistCellID(ID, goal)
+			})
+			paths = paths.slice(0, curPath.index).concat(paths.slice(curPath.index + 1))
+			if (curNode != goal && !visited.includes(curNode)) {
+				let up = curNode - numCols
+				let down = curNode + numCols
+				let left = curNode - 1
+				let right = curNode + 1
+				let upRight = curNode - numCols + 1
+				let upLeft = curNode - numCols - 1
+				let downRight = curNode + numCols + 1
+				let downLeft = curNode + numCols - 1
+				let canDiagRight = false
+				let canDiagLeft = false
+				const appendPaths = (ID, position = '') => {
+					let c = document.getElementById(ID)
+					if (ID >= 0 && ID < numCells && !c.classList.contains('blocker') && !visited.includes(ID)) {
+						let temp = curPath.path.concat([ID])
+						let cost = getCosts(temp) + getDistCellID(ID, goal)
 
-							//(h(n) = g(n)
-							if (position.includes('right') && c.getAttribute('x') != 0) {
-								canDiagRight = true
-								paths.push({ path: temp, cost: cost })
-							}
-							else if (position.includes('left') && c.getAttribute('x') != numCols - 1) {
-								canDiagLeft = true
-								paths.push({ path: temp, cost: cost })
-							}
-							else if (position == '')
-								paths.push({ path: temp, cost: cost })
-
+						//(h(n) = g(n)
+						if (position.includes('right') && c.getAttribute('x') != 0) {
+							canDiagRight = true
+							paths.push({ path: temp, cost: cost })
 						}
+						else if (position.includes('left') && c.getAttribute('x') != numCols - 1) {
+							canDiagLeft = true
+							paths.push({ path: temp, cost: cost })
+						}
+						else if (position == '')
+							paths.push({ path: temp, cost: cost })
+
 					}
+				}
 
-					appendPaths(up)
-					appendPaths(right, 'right')
-					appendPaths(down)
-					appendPaths(left, 'left')
-					if (hueristicMode == 0) {
-						if (canDiagLeft) {
-							appendPaths(upLeft)
-							appendPaths(downLeft)
-						}
-						if (canDiagRight) {
-							appendPaths(upRight)
-							appendPaths(downRight)
-						}
+				appendPaths(up)
+				appendPaths(right, 'right')
+				appendPaths(down)
+				appendPaths(left, 'left')
+				if (hueristicMode == 0) {
+					if (canDiagLeft) {
+						appendPaths(upLeft)
+						appendPaths(downLeft)
 					}
+					if (canDiagRight) {
+						appendPaths(upRight)
+						appendPaths(downRight)
+					}
+				}
 
-					visited.push(curNode)
-				}
-				else if (visited.includes(curNode) && curNode != goal) {
-					continue
-				}
-				else {
-					found = true
-					setPath(curPath.path)
-					setCost(getCosts(curPath.path))
-					setExploredPath(explored)
-				}
+				visited.push(curNode)
+			}
+			else if (visited.includes(curNode) && curNode != goal) {
+				continue
+			}
+			else {
+				found = true
+				setPath(curPath.path)
+				setCost(getCosts(curPath.path))
+				setExploredPath(explored)
 			}
 		}
+
 	}
 
 	function getCosts(array) {
@@ -598,6 +629,7 @@ export default function Home() {
 	let counter = animatingState
 	function animatePathExplored(animation = 0) {
 		let cell = 0
+		setBusy(true)
 		if (isAnimating == 1 && animation == 0) {
 
 			if (isAnimating == 1 && counter == 0) {
@@ -683,13 +715,17 @@ export default function Home() {
 			}, 80)
 		}
 
+		setBusy(false)
+
+
 	}
 
 	function randomizeGrid(e) {
 		e.preventDefault()
-		selectAll('.blocker').classed('animate-scale', false).classed('blocker', false)
-		selectAll('.subpath').classed('animate-scale', false).classed('subpath', false)
-		selectAll('.exploredpath').classed('animate-scale', false).classed('exploredpath', false)
+		// selectAll('.blocker').classed('animate-scale', false).classed('blocker', false)
+		// selectAll('.subpath').classed('animate-scale', false).classed('subpath', false)
+		// selectAll('.exploredpath').classed('animate-scale', false).classed('exploredpath', false)
+		clearGrid()
 		const cells = document.querySelectorAll('[data-cell]')
 		cells.forEach((cell) => {
 			let rand = Math.floor(Math.random() * 100)
@@ -712,7 +748,7 @@ export default function Home() {
 		else {
 			clearPath()
 			setAnimating(1)
-			filter == 'aStar' ? aStarSearch(e) : filter == 'greedy' ? greedySearch(e) : uniformSearch(e)
+			checkSelected()
 		}
 
 	}
@@ -748,8 +784,7 @@ export default function Home() {
 			if (goal != -1) {
 				clearPath()
 				setAnimating(1)
-				filter == 'aStar' ? aStarSearch(e) : filter == 'greedy' ? greedySearch(e) : uniformSearch(e)
-
+				checkSelected()
 			}
 		}
 
@@ -798,6 +833,7 @@ export default function Home() {
 
 	function handleCellClick(e) {
 		e.preventDefault()
+		console.log("lol")
 		const cell = e.target
 		if (!cell.classList.contains('start') && !cell.classList.contains('goal') && start == -1) {
 			cell.classList.add('start')
@@ -827,68 +863,66 @@ export default function Home() {
 	function handleCellDrag(e) {
 		e.preventDefault()
 		const cell = e.target
+		if (!mouseDown || cell.classList.contains('goal') || cell.classList.contains('start'))
+			return
 
-		if ((mouseDown || isDragging) && buildMode) {
-			if (!cell.classList.contains('goal') && !cell.classList.contains('start') && !cell.classList.contains('blocker')) {
-				cell.classList.remove('subpath')
-				cell.classList.remove('exploredpath')
-				cell.classList.add('blocker')
-				setBuildMode(true)
-			}
-			else {
-				cell.classList.remove('blocker')
-			}
+		// if (buildMode) {
+
+		// 	if (!cell.classList.contains('goal') && !cell.classList.contains('start') && !cell.classList.contains('blocker')) {
+		// 		cell.classList.remove('subpath')
+		// 		cell.classList.remove('exploredpath')
+		// 		cell.classList.add('blocker')
+		// 	}
+		// 	else {
+		// 		cell.classList.remove('blocker')
+		// 	}
+		// }
+		// else {
+		if (!cell.classList.contains('blocker')) {
+			setTimeout(() => {
+				cell.classList.add('animate-scale')
+			}, 100)
+			cell.classList.remove('animate-scale')
+			cell.classList.remove('subpath')
+			cell.classList.remove('exploredpath')
+			cell.classList.add('blocker')
 		}
-		else if ((mouseDown || isDragging) && !buildMode) {
-			if (!cell.classList.contains('goal') && !cell.classList.contains('start') && !cell.classList.contains('blocker')) {
-				setTimeout(() => {
-					cell.classList.add('animate-scale')
-				}, 100)
-				cell.classList.remove('animate-scale')
-				cell.classList.remove('subpath')
-				cell.classList.remove('exploredpath')
-				cell.classList.add('blocker')
-			}
-			else {
-				cell.classList.remove('blocker')
-			}
+		else {
+			cell.classList.remove('blocker')
 		}
+		// }
 	}
 
-	function generateGrid() {
-		let size = squares.length
-		let count = 0
-		let divs = []
+	function GenerateGrid() {
 		let yIndex = 0
-		while (count != size) {
-			count % numCols == 0 ? yIndex++ : yIndex
-			let pos = {
-				x: count % numCols,
+		// const gridContainer = document.getElementById('grid-container')
+		document.documentElement.style.setProperty('--num-cols', numCols)
+
+		return squares.map((square, index) => {
+			index % numCols == 0 ? yIndex++ : yIndex
+			const pos = {
+				x: index % numCols,
 				y: yIndex,
 			}
 
-			divs.push(
+			return (
 				<div
-					key={count}
-					id={count}
+					key={index}
+					id={index}
 					x={pos.x}
 					y={pos.y - 1}
 					cost={1}
-					className={'cell w-[30px] h-[30px] border-[0.1px] border-gray-900'}
-					// className={'hexagon cell'}
+					className={'cell'}
 					data-cell
 					onMouseEnter={handleCellDrag}
 					onMouseDown={handleCellClick}
-				></div>
+				>
+				</div>
 			)
-
-			count += 1
-		}
-		return <>{divs.map((d) => d)}</>
+		})
 	}
 
-	function clearGrid(e) {
-		e ? e.preventDefault() : null
+	function clearGrid() {
 		const cells = document.querySelectorAll('[data-cell]')
 		cells.forEach((cell) => {
 			cell.classList.remove('goal')
@@ -910,7 +944,7 @@ export default function Home() {
 		if (blockers.node()) {
 			blockers.classed('blocker', false).classed('animate-scale', false)
 			if (isAnimating != 1) {
-				filter == 'aStar' ? aStarSearch(e) : filter == 'greedy' ? greedySearch(e) : uniformSearch(e)
+				checkSelected()
 				setAnimating(1)
 			}
 
@@ -947,7 +981,7 @@ export default function Home() {
 
 		if (isAnimating <= 0 && isAnimating > -2) {
 			let startTime = performance.now()
-			filter == 'aStar' ? aStarSearch(e) : filter == 'greedy' ? greedySearch(e) : filter == 'uniform' ? uniformSearch(e) : depthFirstSearch(e)
+			checkSelected()
 			let endTime = performance.now()
 			let elapsedTime = endTime - startTime
 			setTimer(Math.floor(elapsedTime * 1000) / 1000)
@@ -967,76 +1001,57 @@ export default function Home() {
 	}
 
 	return (
-		<div div className='flex w-screen h-screen overflow-hidden' >
-			<div>
-				<Head>
-					<title>Search Algorithm Visualizer</title>
-				</Head>
-				<nav>
-					{/* right-[-150px] hover: */}
-					<ul id='navbar' className={`${mouseDown ? 'pointer-events-none' : 'pointer-events-auto'} shadow-sm hover:bg-opacity-90 shadow-black flex flex-col z-10 right-11 top-11 p-6 fixed bg-opacity-50 rounded-lg  transition-all ease-in-out justify-items-start items-center gap-4 bg-blue-900 w-[10%] h-auto overflow-hidden`}>
-						<li className='hover:block relative'>
-							<select
-								name='Filter'
-								id='Filter'
-								defaultValue='aStar'
-								required
-								className='h-[50%] bg-blue-900 w-[98%] bg-opacity-0 text-white hover:bg-opacity-90 focus:none hover:underline '
-								onChange={() => {
-									setFilter(document.getElementById('Filter').value)
-								}}
-							>
-								<option value='aStar'>A * Search</option>
-								<option value='greedy'>Greedy Search</option>
-								<option value='uniform'>Uniform Search</option>
-							</select>
-						</li>
-						<li className='hover:block relative'>
-							<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={beginSearch}>
-								{isAnimating <= 0 ? 'Start Search' : 'Pause Search'}
-							</button>
-						</li>
-						<button className='h-[50%] ml-3 pl-2 pr-2 text-white hover:underline' onClick={clearGrid}>
-							Reset
-						</button>
-						<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={clearWalls}>
-							Clear Walls
-						</button>
-						<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={clearPath}>
-							Clear Path
-						</button>
-						<button className=' ml-3 pl-2 pr-2 text-white hover:underline' onClick={genBasicMaze2}>
-							Generate Maze
-						</button>
-						<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={randomizeGrid}>
-							Randomize Walls
-						</button>
-						<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={randomizeCosts}>
-							Randomize Costs
-						</button>
-						<button className=' ml-3 pl-2 pr-2 text-white hover:underline' onClick={toggleHueristic}>
-							{hueristicMode == 0 ? 'Euclidean' : 'Manhattan'}
-						</button>
+		<div className='flex w-screen h-screen overflow-hidden' >
+			<div id="cover" className='w-full h-full bg-black pointer-events-none z-50 fixed'>sdfsdfsdfsddddddddddddddddddddddd</div>
+			<Head>
+				<title>Search Algorithm Visualizer</title>
+			</Head>
+			<nav>
+				<ul id='navbar' className={`${mouseDown ? 'pointer-events-none' : 'pointer-events-auto'} shadow-sm hover:bg-opacity-90 shadow-black flex flex-col z-10 right-11 top-11 p-6 fixed bg-opacity-50 rounded-lg  transition-all ease-in-out justify-items-start items-center gap-4 bg-blue-900 w-[10%] h-auto overflow-hidden`}>
+					<DropDown></DropDown>
 
-					</ul>
-				</nav>
-				<nav>
-					<div id="counter" className='shadow-sm text-white shadow-black flex flex-col pointer-events-none z-10 left-11 bottom-5 p-3 fixed bg-opacity-90 rounded-lg transition-all ease-in-out gap-2 bg-blue-900 w-auto h-auto '>
-						<h1 className='self-start text-white'>Time: {timer} ms</h1>
-						<h1 className='self-start  text-white'>Cost: {finalCost}</h1>
-					</div>
+					<li className='hover:block relative'>
+						<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={beginSearch}>
+							{isAnimating <= 0 ? 'Start Search' : 'Pause Search'}
+						</button>
+					</li>
+					<button className='h-[50%] ml-3 pl-2 pr-2 text-white hover:underline' onClick={() => clearGrid()}>
+						Reset
+					</button>
+					<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={clearWalls}>
+						Clear Walls
+					</button>
+					<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={clearPath}>
+						Clear Path
+					</button>
+					<button className=' ml-3 pl-2 pr-2 text-white hover:underline' onClick={genBasicMaze2}>
+						Generate Maze
+					</button>
+					<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={randomizeGrid}>
+						Randomize Walls
+					</button>
+					<button className='h-[50%]  ml-3 pl-2 pr-2 text-white hover:underline' onClick={randomizeCosts}>
+						Randomize Costs
+					</button>
+					<button className=' ml-3 pl-2 pr-2 text-white hover:underline' onClick={toggleHueristic}>
+						{hueristicMode == 0 ? 'Euclidean' : 'Manhattan'}
+					</button>
 
-				</nav>
-				<div
-					className='board flex w-screen h-screen flex-wrap -mx-2'
-					onMouseDown={() => setMouseDown(true)}
-					onMouseUp={() => setMouseDown(false)}
-					id='board'
-				>
-					{isLoaded ? generateGrid() : null}
-				</div>
-
+				</ul>
+			</nav>
+			<div id="counter" className='shadow-sm text-white shadow-black flex flex-col pointer-events-none z-10 left-11 bottom-5 p-3 fixed bg-opacity-90 rounded-lg transition-all ease-in-out gap-2 bg-blue-900 w-auto h-auto '>
+				<h1 className='self-start text-white'>Time: {timer} ms</h1>
+				<h1 className='self-start  text-white'>Cost: {finalCost}</h1>
 			</div>
+			<div
+				className='board flex w-screen h-screen flex-wrap -mx-2'
+				onMouseDown={() => setMouseDown(true)}
+				onMouseUp={() => setMouseDown(false)}
+				id='grid-container'
+			>
+				{isLoaded && GenerateGrid()}
+			</div>
+
 		</div>
 	)
 }
