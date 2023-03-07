@@ -3,68 +3,68 @@
 @tailwind utilities;
 
 @layer components {
-    :root {
-        --num-cols: 0;
-    }
-    .cell:hover {
-        background-color: #6d6d68;
-        opacity: 0.6;
-    }
+	:root {
+		--num-cols: 0;
+	}
+	.cell:hover {
+		background-color: #6d6d68;
+		opacity: 0.6;
+	}
 
-    .cell {
-        width: 30px;
-        height: 30px;
-        cursor: pointer;
-        background-color: white;
-        border: none;
-        border-top: 1px solid rgba(75, 75, 75, 0.205);
-        border-left: 1px solid rgba(75, 75, 75, 0.205);
-    }
-    /* First row cells */
-    .cell:nth-child(-n + var(--num-cols)) {
-        background-color: #6d1a55;
-        border-top: none;
-    }
+	.cell {
+		width: 30px;
+		height: 30px;
+		cursor: pointer;
+		background-color: white;
+		border: none;
+		border-top: 1px solid rgba(75, 75, 75, 0.205);
+		border-left: 1px solid rgba(75, 75, 75, 0.205);
+	}
+	/* First row cells */
+	.cell:nth-child(-n + var(--num-cols)) {
+		background-color: #6d1a55;
+		border-top: none;
+	}
 
-    /* First column cells */
-    .cell:nth-child(n + 1):nth-child(-n + var(--num-cols)) {
-        border-left: none;
-    }
+	/* First column cells */
+	.cell:nth-child(n + 1):nth-child(-n + var(--num-cols)) {
+		border-left: none;
+	}
 
-    /* Last column cells */
-    .cell:nth-child(var(--num-cols)* n + 1):nth-child(-n + var(--num-cols)) {
-        border-right: 3px solid black;
-    }
+	/* Last column cells */
+	.cell:nth-child(var(--num-cols)* n + 1):nth-child(-n + var(--num-cols)) {
+		border-right: 3px solid black;
+	}
 
-    /* Last row cells */
-    .cell:nth-last-child(-n + var(--num-cols)) {
-        border-bottom: 3px solid black;
-    }
+	/* Last row cells */
+	.cell:nth-last-child(-n + var(--num-cols)) {
+		border-bottom: 3px solid black;
+	}
 
-    .cell.start {
-        /* background-color: red; */
-        background: linear-gradient(to right, #ffcccc 0%, #f06666 70%, #ff3333 100%);
-        border: none;
-    }
+	.cell.start {
+		/* background-color: red; */
+		background: #f13452;
+		border: none;
+	}
 
-    .cell.goal {
-        /* background-color: rgb(64, 243, 64); */
-        background: linear-gradient(to right, #affcc6 0%, #5dee75 70%, #33d841 100%);
-        border: none;
-    }
-    .cell.subpath:not(.start):not(.goal) {
-        background-color: #e4f82e;
-        transition: ease-in-out 300ms;
-        border: none;
-    }
+	.cell.goal {
+		/* background-color: rgb(64, 243, 64); */
+		background: #64ff0a;
+		border: none;
+	}
+	.cell.subpath:not(.start):not(.goal) {
+		background-color: #fbff0a;
+		transition: ease-in-out 300ms;
+		border: none;
+	}
 
-    .cell.exploredpath:not(.start):not(.goal) {
-        background-color: #4ce3ee;
-        transition: ease-in-out 300ms;
-        border: 1px solid #c2c2c281;
-    }
-    .cell.blocker {
-        background-color: rgb(5, 5, 56);
-        border: none;
-    }
+	.cell.exploredpath:not(.start):not(.goal) {
+		background-color: #4ce3ee;
+		transition: ease-in-out 300ms;
+		border: 1px solid #c2c2c281;
+	}
+	.cell.blocker {
+		background-color: rgb(5, 5, 56);
+		border: none;
+	}
 }
